@@ -106,4 +106,16 @@ extern bool completion_done(struct completion *x);
 extern void complete(struct completion *);
 extern void complete_all(struct completion *);
 
+/** More 3.4 backwards compatibility stuff 
+*/
+/**
+ * INIT_COMPLETION - reinitialize a completion structure
+ * @x:  completion structure to be reinitialized
+ *
+ * This macro should be used to reinitialize a completion structure so it can
+ * be reused. This is especially important after complete_all() is used.
+ */
+#define INIT_COMPLETION(x)	((x).done = 0)
+
+
 #endif

@@ -82,6 +82,13 @@ config  MSM_VIC
 menu "Qualcomm MSM Board Type"
 	depends on !ARCH_MSM_DT
 
+config MACH_JF_TMO
+	depends on ARCH_APQ8064
+	default n
+	bool "APQ8064 Samsung JF_TMO"
+	help
+	  Support for the Samsung JF device.
+
 config MACH_HALIBUT
 	depends on ARCH_MSM
 	depends on ARCH_MSM7X00A

@@ -1496,13 +1496,10 @@ static bool hdmi_present_sense(struct hdmi_spec_per_pin *per_pin, int repoll)
 	 * specification worked this way. Hence, we just ignore the data in
 	 * the unsolicited response to avoid custom WARs.
 	 */
-	int present;
+	int present = snd_hda_pin_sense(codec, pin_nid);
 	bool update_eld = false;
 	bool eld_changed = false;
 	bool ret;
-
-	snd_hda_power_up(codec);
-	present = snd_hda_pin_sense(codec, pin_nid);
 
 	mutex_lock(&per_pin->lock);
 	pin_eld->monitor_present = !!(present & AC_PINSENSE_PRESENCE);
@@ -1576,7 +1573,6 @@ static bool hdmi_present_sense(struct hdmi_spec_per_pin *per_pin, int repoll)
 		jack->block_report = !ret;
 
 	mutex_unlock(&per_pin->lock);
-	snd_hda_power_down(codec);
 	return ret;
 }
 

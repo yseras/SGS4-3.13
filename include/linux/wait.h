@@ -303,6 +303,25 @@ do {									\
 	__wait_event_cmd(wq, condition, cmd1, cmd2);			\
 } while (0)
 
+/* Added the extra underscore to maintain backwards compatibility with 3.4 for Adreno MSM2 drivers without breakage */
+#define ___wait_event_interruptible(wq, condition, ret)			\
+do {									\
+	DEFINE_WAIT(__wait);						\
+									\
+	for (;;) {							\
+		prepare_to_wait(&wq, &__wait, TASK_INTERRUPTIBLE);	\
+		if (condition)						\
+			break;						\
+		if (!signal_pending(current)) {				\
+			schedule();					\
+			continue;					\
+		}							\
+		ret = -ERESTARTSYS;					\
+		break;							\
+	}								\
+	finish_wait(&wq, &__wait);					\
+} while (0)
+
 #define __wait_event_interruptible(wq, condition)			\
 	___wait_event(wq, condition, TASK_INTERRUPTIBLE, 0, 0,		\
 		      schedule())
@@ -353,6 +372,15 @@ do {									\
  * a signal, or the remaining jiffies (at least 1) if the @condition
  * evaluated to %true before the @timeout elapsed.
  */
+/* Added the extra underscore to maintain backwards compatibility with 3.4 for Adreno MSM2 drivers without breakage */
+#define ___wait_event_interruptible_timeout(wq, condition, timeout)	\
+({									\
+	long __ret = timeout;						\
+	if (!(condition))						\
+		__wait_event_interruptible_timeout(wq, condition, __ret); \
+	__ret;								\
+})
+
 #define wait_event_interruptible_timeout(wq, condition, timeout)	\
 ({									\
 	long __ret = timeout;						\
@@ -412,6 +440,26 @@ do {									\
 	__ret;								\
 })
 
+#define __wait_io_event_interruptible_timeout(wq, condition, ret)	\
+do {									\
+	DEFINE_WAIT(__wait);						\
+									\
+	for (;;) {							\
+		prepare_to_wait(&wq, &__wait, TASK_INTERRUPTIBLE);	\
+		if (condition)						\
+			break;						\
+		if (!signal_pending(current)) {				\
+			ret = io_schedule_timeout(ret);			\
+			if (!ret)					\
+				break;					\
+			continue;					\
+		}							\
+		ret = -ERESTARTSYS;					\
+		break;							\
+	}								\
+	finish_wait(&wq, &__wait);					\
+} while (0)
+
 /**
  * wait_event_interruptible_hrtimeout - sleep until a condition gets true or a timeout elapses
  * @wq: the waitqueue to wait on
@@ -428,6 +476,15 @@ do {									\
  * The function returns 0 if @condition became true, -ERESTARTSYS if it was
  * interrupted by a signal, or -ETIME if the timeout elapsed.
  */
+
+#define wait_io_event_interruptible_timeout(wq, condition, timeout)	\
+({									\
+	long __ret = timeout;						\
+	if (!(condition))						\
+		__wait_io_event_interruptible_timeout(wq, condition, __ret); \
+	__ret;								\
+})
+
 #define wait_event_interruptible_hrtimeout(wq, condition, timeout)	\
 ({									\
 	long __ret = 0;							\

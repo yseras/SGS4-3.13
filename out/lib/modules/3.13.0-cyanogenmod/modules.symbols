@@ -1,0 +1,6 @@
+# Aliases for symbols, used by symbol_request().
+alias symbol:tcp_vegas_state tcp_vegas
+alias symbol:tcp_vegas_get_info tcp_vegas
+alias symbol:tcp_vegas_pkts_acked tcp_vegas
+alias symbol:tcp_vegas_init tcp_vegas
+alias symbol:tcp_vegas_cwnd_event tcp_vegas
