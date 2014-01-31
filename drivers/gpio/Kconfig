@@ -518,6 +518,22 @@ config GPIO_TPS65912
 	help
 	  This driver supports TPS65912 gpio chip
 
+config GPIO_PM8XXX
+	tristate "Qualcomm PM8xxx GPIO support"
+	depends on MFD_PM8XXX
+	default y if MFD_PM8XXX
+	help
+	  This option enables support for on-chip GPIO found on Qualcomm PM8xxx
+	  PMICs.
+
+config GPIO_PM8XXX_MPP
+	tristate "Support for Qualcomm PM8xxx MPP features"
+	depends on MFD_PM8XXX
+	default y if MFD_PM8XXX
+	help
+	  This is the multi-purpose pin (MPP) driver for Qualcomm PM 8xxx PMIC
+	  chips.
+
 config GPIO_TWL4030
 	tristate "TWL4030, TWL5030, and TPS659x0 GPIOs"
 	depends on TWL4030_CORE
