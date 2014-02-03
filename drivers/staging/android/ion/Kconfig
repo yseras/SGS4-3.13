@@ -17,3 +17,8 @@ config ION_TEST
 	  Choose this option to create a device that can be used to test the
 	  kernel and device side ION functions.
 
+config ION_MSM
+	tristate "Ion for MSM"
+	depends on ARCH_MSM && ION
+	help
+	  Choose this option if you wish to use ion on an MSM target.

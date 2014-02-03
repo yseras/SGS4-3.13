@@ -995,3 +995,12 @@ int iommu_domain_set_attr(struct iommu_domain *domain,
 	return ret;
 }
 EXPORT_SYMBOL_GPL(iommu_domain_set_attr);
+
+phys_addr_t iommu_get_pt_base_addr(struct iommu_domain *domain)
+{
+	if (unlikely(domain->ops->get_pt_base_addr == NULL))
+		return 0;
+
+	return domain->ops->get_pt_base_addr(domain);
+}
+EXPORT_SYMBOL_GPL(iommu_get_pt_base_addr);

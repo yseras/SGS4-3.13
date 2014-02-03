@@ -23,7 +23,9 @@
 #include "kgsl_sharedmem.h"
 #include "kgsl_cffdump.h"
 #include "kgsl_device.h"
+#include <mach/memory.h>
 
+#define VM_RESERVED 0x00080000
 DEFINE_MUTEX(kernel_map_global_lock);
 
 /* An attribute for showing per-process memory statistics */

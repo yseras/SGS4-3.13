@@ -7,8 +7,8 @@
  *
  */
 
-#define TSK_ACTIVE_MM 468 /* offsetof(struct task_struct, active_mm)	@ */
-#define TSK_STACK_CANARY 512 /* offsetof(struct task_struct, stack_canary)	@ */
+#define TSK_ACTIVE_MM 544 /* offsetof(struct task_struct, active_mm)	@ */
+#define TSK_STACK_CANARY 604 /* offsetof(struct task_struct, stack_canary)	@ */
 
 #define TI_FLAGS 0 /* offsetof(struct thread_info, flags)	@ */
 #define TI_PREEMPT 4 /* offsetof(struct thread_info, preempt_count)	@ */
@@ -22,6 +22,7 @@
 #define TI_TP_VALUE 96 /* offsetof(struct thread_info, tp_value)	@ */
 #define TI_FPSTATE 104 /* offsetof(struct thread_info, fpstate)	@ */
 #define TI_VFPSTATE 248 /* offsetof(struct thread_info, vfpstate)	@ */
+#define VFP_CPU 272 /* offsetof(union vfp_state, hard.cpu)	@ */
 
 #define S_R0 0 /* offsetof(struct pt_regs, ARM_r0)	@ */
 #define S_R1 4 /* offsetof(struct pt_regs, ARM_r1)	@ */
@@ -43,7 +44,7 @@
 #define S_OLD_R0 68 /* offsetof(struct pt_regs, ARM_ORIG_r0)	@ */
 #define S_FRAME_SIZE 72 /* sizeof(struct pt_regs)	@ */
 
-#define MM_CONTEXT_ID 344 /* offsetof(struct mm_struct, context.id.counter)	@ */
+#define MM_CONTEXT_ID 352 /* offsetof(struct mm_struct, context.id.counter)	@ */
 
 #define VMA_VM_MM 32 /* offsetof(struct vm_area_struct, vm_mm)	@ */
 #define VMA_VM_FLAGS 40 /* offsetof(struct vm_area_struct, vm_flags)	@ */

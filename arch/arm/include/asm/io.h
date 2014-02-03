@@ -29,6 +29,7 @@
 #include <asm/memory.h>
 #include <asm-generic/pci_iomap.h>
 #include <xen/xen.h>
+#include <mach/msm_rtb.h>
 
 /*
  * ISA I/O bus memory addresses are 1:1 with the physical address.
@@ -70,6 +71,16 @@ static inline void __raw_writew(u16 val, volatile void __iomem *addr)
 		     : "r" (val));
 }
 
+#define __raw_write_logged(v, a, _t)	({ \
+	int _ret; \
+	void *_addr = (void *)(a); \
+	_ret = uncached_logk(LOGK_WRITEL, _addr); \
+	ETB_WAYPOINT; \
+	__raw_write##_t##_no_log((v), _addr); \
+	if (_ret) \
+		LOG_BARRIER; \
+	})
+
 static inline u16 __raw_readw(const volatile void __iomem *addr)
 {
 	u16 val;
@@ -87,12 +98,16 @@ static inline void __raw_writeb(u8 val, volatile void __iomem *addr)
 		     : "r" (val));
 }
 
+#define __raw_writell_no_log(v, a)	(__chk_io_ptr(a), *(volatile unsigned long long __force *)(a) = (v))
+
 static inline void __raw_writel(u32 val, volatile void __iomem *addr)
 {
 	asm volatile("str %1, %0"
 		     : "+Qo" (*(volatile u32 __force *)addr)
 		     : "r" (val));
 }
+
+
 
 static inline u8 __raw_readb(const volatile void __iomem *addr)
 {
@@ -102,6 +117,8 @@ static inline u8 __raw_readb(const volatile void __iomem *addr)
 		       "=r" (val));
 	return val;
 }
+
+#define __raw_writell(v, a)	__raw_write_logged((v), (a), ll)
 
 static inline u32 __raw_readl(const volatile void __iomem *addr)
 {
@@ -297,6 +314,8 @@ extern void _memset_io(volatile void __iomem *, int, size_t);
 #define writeb_relaxed(v,c)	__raw_writeb(v,c)
 #define writew_relaxed(v,c)	__raw_writew((__force u16) cpu_to_le16(v),c)
 #define writel_relaxed(v,c)	__raw_writel((__force u32) cpu_to_le32(v),c)
+#define writell_relaxed(v, c)	((void)__raw_writell((__force u64) \
+					cpu_to_le64(v), c))
 
 #define readb(c)		({ u8  __v = readb_relaxed(c); __iormb(); __v; })
 #define readw(c)		({ u16 __v = readw_relaxed(c); __iormb(); __v; })

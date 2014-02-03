@@ -224,8 +224,7 @@ kgsl_gem_alloc_memory(struct drm_gem_object *obj)
 				return result;
 			}
 
-			result = kgsl_mmu_map(priv->pagetable, &priv->memdesc,
-					GSL_PT_PAGE_RV | GSL_PT_PAGE_WV);
+			result = kgsl_mmu_map(priv->pagetable, &priv->memdesc);
 			if (result) {
 				DRM_ERROR(
 				"kgsl_mmu_map failed.  result = %d\n", result);
@@ -364,6 +363,7 @@ kgsl_gem_free_object(struct drm_gem_object *obj)
 	kgsl_gem_free_memory(obj);
 	drm_gem_object_release(obj);
 	kfree(obj->driver_private);
+	kfree(obj);
 }
 
 int
@@ -486,6 +486,8 @@ kgsl_gem_create_ioctl(struct drm_device *dev, void *data,
 	ret = kgsl_gem_init_obj(dev, file_priv, obj, &handle);
 	if (ret) {
 		drm_gem_object_release(obj);
+		kfree(obj->driver_private);
+		kfree(obj);
 		DRM_ERROR("Unable to initialize GEM object ret = %d\n", ret);
 		return ret;
 	}
