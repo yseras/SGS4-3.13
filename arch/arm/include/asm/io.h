@@ -107,7 +107,16 @@ static inline void __raw_writel(u32 val, volatile void __iomem *addr)
 		     : "r" (val));
 }
 
+static inline void __raw_writeq_no_log(u64 val, volatile void __iomem *addr)
+{
+	register u64 v asm ("r2");
 
+	v = val;
+
+	asm volatile("strd %1, %0"
+		     : "+Qo" (*(volatile u64 __force *)addr)
+		     : "r" (v));
+}
 
 static inline u8 __raw_readb(const volatile void __iomem *addr)
 {
@@ -128,6 +137,31 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
 		       "=r" (val));
 	return val;
 }
+
+static inline u64 __raw_readq_no_log(const volatile void __iomem *addr)
+{
+	register u64 val asm ("r2");
+
+	asm volatile("ldrd %1, %0"
+		     : "+Qo" (*(volatile u64 __force *)addr),
+		       "=r" (val));
+	return val;
+}
+
+#define __raw_read_logged(a, _l, _t)		({ \
+	unsigned _t __a; \
+	void *_addr = (void *)(a); \
+	int _ret; \
+	_ret = uncached_logk(LOGK_READL, _addr); \
+	ETB_WAYPOINT; \
+	__a = __raw_read##_l##_no_log(_addr);\
+	if (_ret) \
+		LOG_BARRIER; \
+	__a; \
+	})
+
+#define __raw_writeq(v, a)	__raw_write_logged((v), (a), q)
+#define __raw_readq(a)		__raw_read_logged((a), q, long long)
 
 /*
  * Architecture ioremap implementation.
@@ -310,20 +344,25 @@ extern void _memset_io(volatile void __iomem *, int, size_t);
 					__raw_readw(c)); __r; })
 #define readl_relaxed(c) ({ u32 __r = le32_to_cpu((__force __le32) \
 					__raw_readl(c)); __r; })
+#define readq_relaxed(c) ({ u64 __r = le64_to_cpu((__force __le64) \
+					__raw_readq(c)); __r; })
 
 #define writeb_relaxed(v,c)	__raw_writeb(v,c)
 #define writew_relaxed(v,c)	__raw_writew((__force u16) cpu_to_le16(v),c)
 #define writel_relaxed(v,c)	__raw_writel((__force u32) cpu_to_le32(v),c)
+#define writeq_relaxed(v,c)	__raw_writeq((__force u64) cpu_to_le64(v),c)
 #define writell_relaxed(v, c)	((void)__raw_writell((__force u64) \
 					cpu_to_le64(v), c))
 
 #define readb(c)		({ u8  __v = readb_relaxed(c); __iormb(); __v; })
 #define readw(c)		({ u16 __v = readw_relaxed(c); __iormb(); __v; })
 #define readl(c)		({ u32 __v = readl_relaxed(c); __iormb(); __v; })
+#define readq(c)		({ u64 __v = readq_relaxed(c); __iormb(); __v; })
 
 #define writeb(v,c)		({ __iowmb(); writeb_relaxed(v,c); })
 #define writew(v,c)		({ __iowmb(); writew_relaxed(v,c); })
 #define writel(v,c)		({ __iowmb(); writel_relaxed(v,c); })
+#define writeq(v, c)		({ __iowmb(); writeq_relaxed(v, c); })
 
 #define readsb(p,d,l)		__raw_readsb(p,d,l)
 #define readsw(p,d,l)		__raw_readsw(p,d,l)
