@@ -805,6 +805,13 @@ static long compat_ashmem_ioctl(struct file *file, unsigned int cmd,
 }
 #endif
 
+static int is_ashmem_file(struct file *file)
+{
+	char fname[256], *name;
+	name = dentry_path(file->f_dentry, fname, 256);
+	return strcmp(name, "/ashmem") ? 0 : 1;
+}
+
 int get_ashmem_file(int fd, struct file **filp, struct file **vm_file,
 			unsigned long *len)
 {
