@@ -1,2 +1,2 @@
 obj-y			+= drm/ vga/
-obj-$(CONFIG_MSM_KGSL)	+= msm2/
+obj-$(CONFIG_MSM_KGSL)	+= msm/
