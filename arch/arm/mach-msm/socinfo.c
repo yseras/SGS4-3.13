@@ -18,7 +18,7 @@
 #include <linux/types.h>
 #include <linux/sysdev.h>
 #include <asm/mach-types.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/socinfo.h>
 
 #include "smd_private.h"
 
