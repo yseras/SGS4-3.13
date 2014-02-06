@@ -57,6 +57,7 @@ config ARCH_MSM8960
 	select HAVE_SMP
 	select GPIO_MSM_V2
 	select MSM_SCM if SMP
+	select SOC_BUS
 
 config ARCH_MSM_DT
 	def_bool y
