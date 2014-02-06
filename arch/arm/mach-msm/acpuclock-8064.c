@@ -18,7 +18,7 @@
 #include <mach/msm_bus_board.h>
 #include <mach/msm_bus.h>
 
-#include "mach/socinfo.h"
+#include "soc/qcom/socinfo.h"
 #include "acpuclock.h"
 #include "acpuclock-krait.h"
 

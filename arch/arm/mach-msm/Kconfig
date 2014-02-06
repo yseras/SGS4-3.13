@@ -1,12 +1,39 @@
 if ARCH_MSM
 
-comment "Qualcomm MSM SoC Type"
-	depends on ARCH_MSM_DT
+menu "MSM SoC Type"
 
-choice
-	prompt "Qualcomm MSM SoC Type"
-	default ARCH_MSM7X00A
-	depends on !ARCH_MSM_DT
+config ARCH_APQ8064
+	bool "APQ8064"
+	select ARCH_MSM_KRAITMP
+	select GPIO_MSM_V2
+	select ARM_GIC
+	select CPU_V7
+	select MSM_SCM if SMP
+	select MSM_GPIOMUX
+	select MSM_REMOTE_SPINLOCK_SFPB
+	select MSM_PIL
+	select MSM_QDSP6_APR
+	select MSM_QDSP6_CODECS
+	select MSM_AUDIO_QDSP6 if SND_SOC
+	select MULTI_IRQ_HANDLER
+	select MSM_RPM
+	select MSM_SPM_V2
+	select MSM_L2_SPM
+	select MSM_PM8X60 if PM
+	select CPU_HAS_L2_PMU
+	select HOLES_IN_ZONE if SPARSEMEM
+	select CLEANCACHE
+	select MIGHT_HAVE_PCI
+	select ARCH_SUPPORTS_MSI
+	select ARM_HAS_SG_CHAIN
+	select MSM_KRAIT_WFE_FIXUP
+	select SPARSEMEM_ALLOC_MEM_MAP_TOGETHER if SPARSEMEM
+	select MSM_IOMMU_GPU_SYNC
+	select MSM_CPU_PWRCTL
+	select GENERIC_TIME_VSYSCALL
+	select USE_USER_ACCESSIBLE_TIMERS
+	select ARM_USE_USER_ACCESSIBLE_TIMERS
+	select MSM_USE_USER_ACCESSIBLE_TIMERS
 
 config ARCH_MSM7X00A
 	bool "MSM7x00A / MSM7x01A"
@@ -40,8 +67,6 @@ config ARCH_QSD8X50
 	select MSM_SMD
 	select MSM_VIC
 
-endchoice
-
 config ARCH_MSM8X60
 	bool "MSM8X60"
 	select ARM_GIC
@@ -59,8 +84,10 @@ config ARCH_MSM8960
 	select MSM_SCM if SMP
 	select SOC_BUS
 
+endmenu
+
 config ARCH_MSM_DT
-	def_bool y
+	bool
 	depends on (ARCH_MSM8X60 || ARCH_MSM8960)
 	select SPARSE_IRQ
 	select USE_OF
