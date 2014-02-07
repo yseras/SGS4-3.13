@@ -29,7 +29,7 @@
 
 #include <mach/board.h>
 #include <mach/msm_iomap.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/socinfo.h>
 #include <mach/msm-krait-l2-accessors.h>
 #include <mach/rpm-regulator.h>
 #include <mach/rpm-regulator-smd.h>
