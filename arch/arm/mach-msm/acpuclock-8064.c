@@ -11,14 +11,14 @@
  * GNU General Public License for more details.
  */
 
-#include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/platform_device.h>
-#include <mach/rpm-regulator.h>
+#include <linux/of.h>
+#include <mach/rpm-regulator-smd.h>
 #include <mach/msm_bus_board.h>
 #include <mach/msm_bus.h>
+#include <soc/qcom/socinfo.h>
 
-#include "soc/qcom/socinfo.h"
 #include "acpuclock.h"
 #include "acpuclock-krait.h"
 
