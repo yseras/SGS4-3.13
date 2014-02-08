@@ -34,3 +34,4 @@ obj-$(CONFIG_ARCH_QSD8X50) += gpiomux-8x50.o
 obj-$(CONFIG_ARCH_APQ8064) += dma.o io.o
 obj-$(CONFIG_ARCH_APQ8064) += acpuclock-8064.o acpuclock-krait.o
 obj-$(CONFIG_ARCH_APQ8064) += msm-krait-l2-accessors.o
+obj-$(CONFIG_ARCH_APQ8064) += board-8064-gpiomux.o

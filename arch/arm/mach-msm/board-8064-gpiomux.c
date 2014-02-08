@@ -11,18 +11,12 @@
  *
  */
 
+#include <linux/gpio.h>
 #include <linux/init.h>
 #include <linux/ioport.h>
-#include <linux/platform_device.h>
-#include <linux/bootmem.h>
-#include <linux/gpio.h>
-#include <asm/mach-types.h>
-#include <asm/mach/mmc.h>
-#include <mach/msm_bus_board.h>
 #include <mach/board.h>
 #include <mach/gpiomux.h>
-#include <mach/socinfo.h>
-#include "devices.h"
+#include <soc/qcom/socinfo.h>
 #include "board-8064.h"
 
 #if defined(CONFIG_KS8851) || defined(CONFIG_KS8851_MODULE)
