@@ -85,6 +85,18 @@ config ARCH_MSM8960
 
 endmenu
 
+config  ARCH_MSM_KRAIT
+	bool
+	select ARM_L1_CACHE_SHIFT_6
+	select DEVFREQ_GOV_MSM_CPUBW_HWMON
+
+config  ARCH_MSM_KRAITMP
+	select ARCH_MSM_KRAIT
+	select HAVE_SMP
+	select HAVE_ARCH_HAS_CURRENT_TIMER
+	select MSM_JTAG if CORESIGHT_ETM
+	bool
+
 config ARCH_MSM_DT
 	bool
 	depends on (ARCH_MSM8X60 || ARCH_MSM8960)
