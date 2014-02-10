@@ -51,12 +51,14 @@
 
 #define MSM_TMR_BASE		IOMEM(0xFA000000)	/*  4K	*/
 #define MSM_TMR0_BASE		IOMEM(0xFA001000)	/*  4K	*/
+#define MSM_QGIC_DIST_BASE	IOMEM(0xFA002000)	/*  4K	*/
+#define MSM_QGIC_CPU_BASE	IOMEM(0xFA003000)	/*  4K	*/
 #define MSM_TCSR_BASE		IOMEM(0xFA004000)	/*  4K	*/
 #define MSM_APCS_GCC_BASE	IOMEM(0xFA006000)	/*  4K	*/
 #define MSM_SAW_L2_BASE		IOMEM(0xFA007000)	/*  4K	*/
 #define MSM_SAW0_BASE		IOMEM(0xFA008000)	/*  4K	*/
 #define MSM_SAW1_BASE		IOMEM(0xFA009000)	/*  4K	*/
-
+#define MSM_IMEM_BASE		IOMEM(0xFA00A000)	/*  4K	*/
 #define MSM_ACC0_BASE		IOMEM(0xFA00B000)	/*  4K	*/
 #define MSM_ACC1_BASE		IOMEM(0xFA00C000)	/*  4K	*/
 #define MSM_ACC2_BASE		IOMEM(0xFA00D000)	/*  4K	*/
@@ -89,6 +91,13 @@
 							  0xFB600000 */
 #define MSM_STRONGLY_ORDERED_PAGE	0xFA0F0000
 #define MSM8625_CPU_PHYS		0x0FE00000
+
+#if defined(CONFIG_ARCH_MSM9615) || defined(CONFIG_ARCH_MSM7X27) \
+	|| defined(CONFIG_ARCH_MSM7X30)
+#define MSM_SHARED_RAM_SIZE	SZ_1M
+#else
+#define MSM_SHARED_RAM_SIZE	SZ_2M
+#endif
 
 #include "msm_iomap-8974.h"
 #include "msm_iomap-8084.h"

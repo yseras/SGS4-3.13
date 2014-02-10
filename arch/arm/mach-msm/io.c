@@ -43,6 +43,23 @@
 		MSM_CHIP_DEVICE_TYPE(name, chip, MT_DEVICE)
 #define MSM_DEVICE(name) MSM_CHIP_DEVICE(name, MSM)
 
+/* msm_shared_ram_phys default value of 0x00100000 is the most common value
+ * and should work as-is for any target without stacked memory.
+ */
+unsigned int msm_shared_ram_phys = 0x00100000;
+
+static void __init msm_map_io(struct map_desc *io_desc, int size)
+{
+	int i;
+
+	BUG_ON(!size);
+	for (i = 0; i < size; i++)
+		if (io_desc[i].virtual == (unsigned long)MSM_SHARED_RAM_BASE)
+			io_desc[i].pfn = __phys_to_pfn(msm_shared_ram_phys);
+
+	iotable_init(io_desc, size);
+}
+
 #if defined(CONFIG_ARCH_MSM7X00A)
 static struct map_desc msm_io_desc[] __initdata = {
 	MSM_DEVICE_TYPE(VIC, MT_DEVICE_NONSHARED),
@@ -159,3 +176,46 @@ void __iomem *__msm_ioremap_caller(phys_addr_t phys_addr, size_t size,
 	return __arm_ioremap_caller(phys_addr, size, mtype, caller);
 }
 #endif
+
+#ifdef CONFIG_ARCH_APQ8064
+static struct map_desc apq8064_io_desc[] __initdata = {
+	MSM_CHIP_DEVICE(QGIC_DIST, APQ8064),
+	MSM_CHIP_DEVICE(QGIC_CPU, APQ8064),
+	MSM_CHIP_DEVICE(TMR, APQ8064),
+	MSM_CHIP_DEVICE(TMR0, APQ8064),
+	MSM_CHIP_DEVICE(TLMM, APQ8064),
+	MSM_CHIP_DEVICE(ACC0, APQ8064),
+	MSM_CHIP_DEVICE(ACC1, APQ8064),
+	MSM_CHIP_DEVICE(ACC2, APQ8064),
+	MSM_CHIP_DEVICE(ACC3, APQ8064),
+	MSM_CHIP_DEVICE(HFPLL, APQ8064),
+	MSM_CHIP_DEVICE(CLK_CTL, APQ8064),
+	MSM_CHIP_DEVICE(MMSS_CLK_CTL, APQ8064),
+	MSM_CHIP_DEVICE(LPASS_CLK_CTL, APQ8064),
+	MSM_CHIP_DEVICE(APCS_GCC, APQ8064),
+	MSM_CHIP_DEVICE(RPM, APQ8064),
+	MSM_CHIP_DEVICE(RPM_MPM, APQ8064),
+	MSM_CHIP_DEVICE(SAW0, APQ8064),
+	MSM_CHIP_DEVICE(SAW1, APQ8064),
+	MSM_CHIP_DEVICE(SAW2, APQ8064),
+	MSM_CHIP_DEVICE(SAW3, APQ8064),
+	MSM_CHIP_DEVICE(SAW_L2, APQ8064),
+	MSM_CHIP_DEVICE(IMEM, APQ8064),
+	MSM_CHIP_DEVICE(HDMI, APQ8064),
+	{
+		.virtual =  (unsigned long) MSM_SHARED_RAM_BASE,
+		.length =   MSM_SHARED_RAM_SIZE,
+		.type =     MT_DEVICE,
+	},
+	MSM_CHIP_DEVICE(QFPROM, APQ8064),
+	MSM_CHIP_DEVICE(SIC_NON_SECURE, APQ8064),
+#ifdef CONFIG_DEBUG_APQ8064_UART
+	MSM_DEVICE(DEBUG_UART),
+#endif
+};
+
+void __init msm_map_apq8064_io(void)
+{
+	msm_map_io(apq8064_io_desc, ARRAY_SIZE(apq8064_io_desc));
+}
+#endif /* CONFIG_ARCH_APQ8064 */
