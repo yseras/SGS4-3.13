@@ -19,7 +19,7 @@
 #include <mach/msm_memtypes.h>
 #include <mach/irqs.h>
 #include <mach/rpm-regulator.h>
-#include <mach/msm_rtb.h>
+#include <linux/msm_rtb.h>
 #include <mach/msm_cache_dump.h>
 
 /* Macros assume PMIC GPIOs and MPPs start at 1 */

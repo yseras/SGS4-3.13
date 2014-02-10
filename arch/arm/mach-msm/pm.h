@@ -1,7 +1,7 @@
 /* arch/arm/mach-msm/pm.h
  *
  * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2009-2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2009-2014, The Linux Foundation. All rights reserved.
  * Author: San Mehat <san@android.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -27,32 +27,21 @@ extern void msm_secondary_startup(void);
 #define msm_secondary_startup NULL
 #endif
 
-extern int power_collapsed;
-
-struct msm_pm_irq_calls {
-	unsigned int (*irq_pending)(void);
-	int (*idle_sleep_allowed)(void);
-	void (*enter_sleep1)(bool modem_wake, int from_idle, uint32_t
-								*irq_mask);
-	int (*enter_sleep2)(bool modem_wake, int from_idle);
-	void (*exit_sleep1)(uint32_t irq_mask, uint32_t wakeup_reason,
-							uint32_t pending_irqs);
-	void (*exit_sleep2)(uint32_t irq_mask, uint32_t wakeup_reason,
-							uint32_t pending_irqs);
-	void (*exit_sleep3)(uint32_t irq_mask, uint32_t wakeup_reason,
-							uint32_t pending_irqs);
+enum msm_pm_sleep_mode {
+	MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT,
+	MSM_PM_SLEEP_MODE_RETENTION,
+	MSM_PM_SLEEP_MODE_POWER_COLLAPSE_STANDALONE,
+	MSM_PM_SLEEP_MODE_POWER_COLLAPSE,
+	MSM_PM_SLEEP_MODE_POWER_COLLAPSE_SUSPEND,
+	MSM_PM_SLEEP_MODE_NR,
+	MSM_PM_SLEEP_MODE_NOT_SELECTED,
 };
 
-enum msm_pm_sleep_mode {
-	MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT = 0,
-	MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT = 1,
-	MSM_PM_SLEEP_MODE_POWER_COLLAPSE_STANDALONE = 2,
-	MSM_PM_SLEEP_MODE_POWER_COLLAPSE = 3,
-	MSM_PM_SLEEP_MODE_APPS_SLEEP = 4,
-	MSM_PM_SLEEP_MODE_RETENTION = MSM_PM_SLEEP_MODE_APPS_SLEEP,
-	MSM_PM_SLEEP_MODE_POWER_COLLAPSE_SUSPEND = 5,
-	MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN = 6,
-	MSM_PM_SLEEP_MODE_NR
+enum msm_pm_l2_scm_flag {
+	MSM_SCM_L2_ON = 0,
+	MSM_SCM_L2_OFF = 1,
+	MSM_SCM_L2_RET = 2,
+	MSM_SCM_L2_GDHS = 3,
 };
 
 #define MSM_PM_MODE(cpu, mode_nr)  ((cpu) * MSM_PM_SLEEP_MODE_NR + (mode_nr))
@@ -64,34 +53,52 @@ struct msm_pm_time_params {
 	uint32_t modified_time_us;
 };
 
-
-struct msm_pm_platform_data {
-	u8 idle_supported;   /* Allow device to enter mode during idle */
-	u8 suspend_supported; /* Allow device to enter mode during suspend */
-	u8 suspend_enabled;  /* enabled for suspend */
-	u8 idle_enabled;     /* enabled for idle low power */
-	u32 latency;         /* interrupt latency in microseconds when entering
-				and exiting the low power mode */
-	u32 residency;       /* time threshold in microseconds beyond which
-				staying in the low power mode saves power */
-};
-
-extern struct msm_pm_platform_data msm_pm_sleep_modes[];
-
 struct msm_pm_sleep_status_data {
 	void *base_addr;
 	uint32_t cpu_offset;
 	uint32_t mask;
 };
 
-struct msm_pm_sleep_ops {
-	void *(*lowest_limits)(bool from_idle,
-			enum msm_pm_sleep_mode sleep_mode,
-			struct msm_pm_time_params *time_param, uint32_t *power);
-	int (*enter_sleep)(uint32_t sclk_count, void *limits,
-			bool from_idle, bool notify_rpm);
-	void (*exit_sleep)(void *limits, bool from_idle,
-			bool notify_rpm, bool collapsed);
+int msm_pm_mode_sysfs_add(const char *);
+
+/**
+ * msm_pm_sleep_mode_allow() - API to determine if sleep mode is allowed.
+ * @cpu:	CPU on which to check for the sleep mode.
+ * @mode:	Sleep Mode to check for.
+ * @idle:	Idle or Suspend Sleep Mode.
+ *
+ * Helper function to determine if a Idle or Suspend
+ * Sleep mode is allowed for a specific CPU.
+ *
+ * Return: 1 for allowed; 0 if not allowed.
+ */
+int msm_pm_sleep_mode_allow(unsigned int, unsigned int, bool);
+
+/**
+ * msm_pm_sleep_mode_supported() - API to determine if sleep mode is
+ * supported.
+ * @cpu:	CPU on which to check for the sleep mode.
+ * @mode:	Sleep Mode to check for.
+ * @idle:	Idle or Suspend Sleep Mode.
+ *
+ * Helper function to determine if a Idle or Suspend
+ * Sleep mode is allowed and enabled for a specific CPU.
+ *
+ * Return: 1 for supported; 0 if not supported.
+ */
+int msm_pm_sleep_mode_supported(unsigned int, unsigned int, bool);
+
+enum msm_pm_pc_mode_type {
+	MSM_PM_PC_TZ_L2_INT,   /*Power collapse terminates in TZ;
+					integrated L2 cache controller */
+	MSM_PM_PC_NOTZ_L2_EXT, /* Power collapse doesn't terminate in
+					TZ; external L2 cache controller */
+	MSM_PM_PC_TZ_L2_EXT,   /* Power collapse terminates in TZ;
+					external L2 cache controller */
+};
+
+struct msm_pm_init_data_type {
+	enum msm_pm_pc_mode_type pc_mode;
 };
 
 struct msm_pm_cpr_ops {
@@ -99,22 +106,30 @@ struct msm_pm_cpr_ops {
 	void (*cpr_resume)(void);
 };
 
-void msm_pm_set_platform_data(struct msm_pm_platform_data *data, int count);
-int msm_pm_idle_prepare(struct cpuidle_device *dev,
-			struct cpuidle_driver *drv, int index);
-void msm_pm_set_irq_extns(struct msm_pm_irq_calls *irq_calls);
-int msm_pm_idle_enter(enum msm_pm_sleep_mode sleep_mode);
-void msm_pm_cpu_enter_lowpower(unsigned int cpu);
-void __init msm_pm_set_tz_retention_flag(unsigned int flag);
+struct msm_cpuidle_state;
 
-#ifdef CONFIG_MSM_PM8X60
+enum msm_pm_sleep_mode msm_pm_idle_enter(struct cpuidle_device *dev,
+			struct cpuidle_driver *drv, int index,
+			const struct msm_cpuidle_state *states);
+void __init msm_pm_set_tz_retention_flag(unsigned int flag);
+void msm_pm_enable_retention(bool enable);
+void msm_cpu_pm_enter_sleep(enum msm_pm_sleep_mode mode, bool from_idle);
+
+#ifdef CONFIG_MSM_PM
 void msm_pm_set_rpm_wakeup_irq(unsigned int irq);
-void msm_pm_set_sleep_ops(struct msm_pm_sleep_ops *ops);
 int msm_pm_wait_cpu_shutdown(unsigned int cpu);
+void __init msm_pm_sleep_status_init(void);
+void msm_pm_set_l2_flush_flag(enum msm_pm_l2_scm_flag flag);
+void lpm_cpu_hotplug_enter(unsigned int cpu);
 #else
 static inline void msm_pm_set_rpm_wakeup_irq(unsigned int irq) {}
-static inline void msm_pm_set_sleep_ops(struct msm_pm_sleep_ops *ops) {}
 static inline int msm_pm_wait_cpu_shutdown(unsigned int cpu) { return 0; }
+static inline void msm_pm_sleep_status_init(void) {};
+static inline void msm_pm_set_l2_flush_flag(unsigned int flag)
+{
+	/* empty */
+}
+static inline void lpm_cpu_hotplug_enter(unsigned int cpu) {};
 #endif
 #ifdef CONFIG_HOTPLUG_CPU
 int msm_platform_secondary_init(unsigned int cpu);
@@ -140,13 +155,14 @@ enum msm_pm_time_stats_id {
 #ifdef CONFIG_MSM_IDLE_STATS
 void msm_pm_add_stats(enum msm_pm_time_stats_id *enable_stats, int size);
 void msm_pm_add_stat(enum msm_pm_time_stats_id id, int64_t t);
+void msm_pm_l2_add_stat(uint32_t id, int64_t t);
 #else
 static inline void msm_pm_add_stats(enum msm_pm_time_stats_id *enable_stats,
 		int size) {}
 static inline void msm_pm_add_stat(enum msm_pm_time_stats_id id, int64_t t) {}
+static inline void msm_pm_l2_add_stat(uint32_t id, int64_t t) {}
 #endif
 
 void msm_pm_set_cpr_ops(struct msm_pm_cpr_ops *ops);
-extern void *msm_pc_debug_counters;
 extern unsigned long msm_pc_debug_counters_phys;
 #endif  /* __ARCH_ARM_MACH_MSM_PM_H */

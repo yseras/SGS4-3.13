@@ -68,7 +68,7 @@
 #include <mach/mdm2.h>
 #include <linux/msm_tsens.h>
 #include <mach/msm_xo.h>
-#include <mach/msm_rtb.h>
+#include <linux/msm_rtb.h>
 #include <sound/cs8427.h>
 #include <media/gpio-ir-recv.h>
 #include <linux/fmem.h>
