@@ -43,8 +43,8 @@
 #include <linux/i2c/sx150x.h>
 #include <asm/mach-types.h>
 #include <asm/mach/arch.h>
-#include <asm/hardware/gic.h>
-#include <asm/mach/mmc.h>
+#include <linux/irqchip/arm-gic.h>
+#include <mach/mmc.h>
 #include <linux/platform_data/qcom_wcnss_device.h>
 #include <linux/gpio.h>
 #ifdef CONFIG_VIBETONZ
@@ -59,7 +59,7 @@
 #include <mach/ion.h>
 #include <linux/usb/msm_hsusb.h>
 #include <linux/usb/android.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/socinfo.h>
 #include <mach/msm_spi.h>
 #include "timer.h"
 #include "devices.h"
@@ -79,7 +79,7 @@
 #include <mach/mdm2.h>
 #include <linux/msm_tsens.h>
 #include <mach/msm_xo.h>
-#include <mach/msm_rtb.h>
+#include <linux/msm_rtb.h>
 #include <sound/cs8427.h>
 #include <media/gpio-ir-recv.h>
 #include <linux/fmem.h>
@@ -95,7 +95,7 @@
 #endif
 
 #include <linux/persistent_ram.h>
-#include <linux/platform_data/ram_console.h>
+/*#include <linux/platform_data/ram_console.h>*/
 
 #include "msm_watchdog.h"
 #include "board-8064.h"
@@ -946,7 +946,7 @@ static void __init reserve_ion_memory(void)
 #endif
 }
 
-#ifdef CONFIG_ANDROID_RAM_CONSOLE
+/* #ifdef CONFIG_ANDROID_RAM_CONSOLE
 static struct ram_console_platform_data ram_console_pdata = {
 	.bootinfo = NULL,
 };
@@ -983,7 +983,7 @@ static struct persistent_ram per_ram __initdata = {
        .start = RAMCONSOLE_PHYS_ADDR,
        .size = SZ_1M
 };
-#endif
+#endif */
 
 static void __init reserve_mdp_memory(void)
 {
