@@ -21,6 +21,7 @@
 #include <linux/regulator/driver.h>
 #include <linux/regulator/machine.h>
 #include <linux/clk.h>
+#include <linux/clk/msm-clk.h>
 #include <mach/msm_iomap.h>
 #include <mach/msm_bus.h>
 #include <mach/scm-io.h>
@@ -35,6 +36,14 @@
 #undef writel_relaxed
 #define readl_relaxed secure_readl
 #define writel_relaxed secure_writel
+#endif
+
+#ifndef CLKFLAG_RETAIN
+#define CLKFLAG_RETAIN			0x00000040
+
+#endif
+#ifndef CLKFLAG_NORETAIN
+#define CLKFLAG_NORETAIN		0x00000080
 #endif
 
 #define REG(off) (MSM_MMSS_CLK_CTL_BASE + (off))
@@ -613,6 +622,7 @@ static int footswitch_probe(struct platform_device *pdev)
 	struct fs_driver_data *driver_data;
 	struct fs_clk_data *clock;
 	uint32_t regval, rc = 0;
+	struct regulator_config		config = { };
 
 	if (pdev == NULL)
 		return -EINVAL;
@@ -651,8 +661,12 @@ static int footswitch_probe(struct platform_device *pdev)
 	regval &= ~RETENTION_BIT;
 	writel_relaxed(regval, fs->gfs_ctl_reg);
 
-	fs->rdev = regulator_register(&fs->desc, &pdev->dev,
-							init_data, fs, NULL);
+	config.dev = &pdev->dev;
+	config.init_data = init_data;
+	config.driver_data = fs;
+	config.of_node = NULL;
+
+	fs->rdev = regulator_register(&fs->desc, &config);
 	if (IS_ERR(footswitches[pdev->id].rdev)) {
 		pr_err("regulator_register(\"%s\") failed\n",
 			fs->desc.name);
