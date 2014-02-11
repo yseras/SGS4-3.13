@@ -17,6 +17,7 @@ config ARCH_APQ8064
 	select MSM_AUDIO_QDSP6 if SND_SOC
 	select MULTI_IRQ_HANDLER
 	select MSM_RPM
+	select MSM_NATIVE_RESTART
 	select MSM_SPM_V2
 	select MSM_L2_SPM
 	select MSM_PM8X60 if PM
@@ -178,6 +179,9 @@ config MSM_PROC_COMM
 	bool
 
 config MSM_SMD
+	bool
+
+config MSM_NATIVE_RESTART
 	bool
 
 config MSM_GPIOMUX
