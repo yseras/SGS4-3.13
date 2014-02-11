@@ -38,14 +38,6 @@
 #define writel_relaxed secure_writel
 #endif
 
-#ifndef CLKFLAG_RETAIN
-#define CLKFLAG_RETAIN			0x00000040
-
-#endif
-#ifndef CLKFLAG_NORETAIN
-#define CLKFLAG_NORETAIN		0x00000080
-#endif
-
 #define REG(off) (MSM_MMSS_CLK_CTL_BASE + (off))
 #define GEMINI_GFS_CTL_REG	REG(0x01A0)
 #define GFX2D0_GFS_CTL_REG	REG(0x0180)
@@ -221,7 +213,7 @@ static int footswitch_enable(struct regulator_dev *rdev)
 	}
 
 	/* Prevent core memory from collapsing when its clock is gated. */
-	clk_set_flags(fs->core_clk, CLKFLAG_RETAIN);
+	clk_set_flags(fs->core_clk, CLKFLAG_RETAIN_MEM);
 
 	/* Return clocks to their state before this function. */
 	restore_clocks(fs);
@@ -254,7 +246,7 @@ static int footswitch_disable(struct regulator_dev *rdev)
 
 	/* Allow core memory to collapse when its clock is gated. */
 	if (fs->desc.id != FS_GFX3D_8064)
-		clk_set_flags(fs->core_clk, CLKFLAG_NORETAIN);
+		clk_set_flags(fs->core_clk, CLKFLAG_NORETAIN_MEM);
 
 	/* Halt all bus ports in the power domain. */
 	if (fs->bus_port0) {
@@ -309,7 +301,7 @@ static int footswitch_disable(struct regulator_dev *rdev)
 err_port2_halt:
 	msm_bus_axi_portunhalt(fs->bus_port0);
 err:
-	clk_set_flags(fs->core_clk, CLKFLAG_RETAIN);
+	clk_set_flags(fs->core_clk, CLKFLAG_RETAIN_MEM);
 	restore_clocks(fs);
 	return rc;
 }
@@ -377,7 +369,7 @@ static int gfx2d_footswitch_enable(struct regulator_dev *rdev)
 	clk_prepare_enable(fs->core_clk);
 
 	/* Prevent core memory from collapsing when its clock is gated. */
-	clk_set_flags(fs->core_clk, CLKFLAG_RETAIN);
+	clk_set_flags(fs->core_clk, CLKFLAG_RETAIN_MEM);
 
 	/* Return clocks to their state before this function. */
 	restore_clocks(fs);
@@ -407,7 +399,7 @@ static int gfx2d_footswitch_disable(struct regulator_dev *rdev)
 		return rc;
 
 	/* Allow core memory to collapse when its clock is gated. */
-	clk_set_flags(fs->core_clk, CLKFLAG_NORETAIN);
+	clk_set_flags(fs->core_clk, CLKFLAG_NORETAIN_MEM);
 
 	/* Halt all bus ports in the power domain. */
 	if (fs->bus_port0) {
@@ -453,7 +445,7 @@ static int gfx2d_footswitch_disable(struct regulator_dev *rdev)
 	return 0;
 
 err:
-	clk_set_flags(fs->core_clk, CLKFLAG_RETAIN);
+	clk_set_flags(fs->core_clk, CLKFLAG_RETAIN_MEM);
 	restore_clocks(fs);
 	return rc;
 }
@@ -548,7 +540,7 @@ static int gfx3d_8064_footswitch_enable(struct regulator_dev *rdev)
 		clk_reset(clock->clk, CLK_RESET_DEASSERT);
 
 	/* Prevent core memory from collapsing when its clock is gated. */
-	clk_set_flags(fs->core_clk, CLKFLAG_RETAIN);
+	clk_set_flags(fs->core_clk, CLKFLAG_RETAIN_MEM);
 
 	/* Return clocks to their state before this function. */
 	restore_clocks(fs);
