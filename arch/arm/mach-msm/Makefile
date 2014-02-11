@@ -30,7 +30,7 @@ obj-$(CONFIG_ARCH_MSM_DT) += board-dt.o
 obj-$(CONFIG_MSM_GPIOMUX) += gpiomux.o
 obj-$(CONFIG_ARCH_QSD8X50) += gpiomux-8x50.o
 
-# APQ8064 support
+# APQ8064 support; everything below has been edited in at the bottom to maintain line numbers for future patches
 #obj-$(CONFIG_ARCH_MSM_KRAIT) += krait-scm.o
 obj-$(CONFIG_ARCH_MSM_KRAIT) += msm-krait-l2-accessors.o
 obj-$(CONFIG_ARCH_MSM_KRAIT) += acpuclock-krait.o
