@@ -40,8 +40,8 @@
 #include <linux/i2c/sx150x.h>
 #include <asm/mach-types.h>
 #include <asm/mach/arch.h>
-#include <asm/hardware/gic.h>
-#include <asm/mach/mmc.h>
+#include <linux/irqchip/arm-gic.h>
+#include <mach/mmc.h>
 #include <linux/platform_data/qcom_wcnss_device.h>
 
 #include <mach/board.h>
@@ -49,7 +49,7 @@
 #include <mach/ion.h>
 #include <linux/usb/msm_hsusb.h>
 #include <linux/usb/android.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/socinfo.h>
 #include <mach/msm_spi.h>
 #include "timer.h"
 #include "devices.h"

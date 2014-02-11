@@ -870,7 +870,11 @@ static struct device_attribute select_image =
 
 static void * __init setup_dummy_socinfo(void)
 {
-	if (early_machine_is_mpq8092()) {
+	if (machine_is_msm8960_cdp())
+		dummy_socinfo.id = 87;
+		strlcpy(dummy_socinfo.build_id, "msm8960 - ",
+			sizeof(dummy_socinfo.build_id));
+	} else if (early_machine_is_mpq8092()) {
 		dummy_socinfo.id = 146;
 		strlcpy(dummy_socinfo.build_id, "mpq8092 - ",
 		sizeof(dummy_socinfo.build_id));
