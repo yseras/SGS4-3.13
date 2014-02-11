@@ -43,6 +43,7 @@
 #include <linux/irqchip/arm-gic.h>
 #include <mach/mmc.h>
 #include <linux/platform_data/qcom_wcnss_device.h>
+#include <linux/pm8xxx/pm8921.h>
 
 #include <mach/board.h>
 #include <mach/msm_iomap.h>
