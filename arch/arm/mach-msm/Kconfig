@@ -179,7 +179,14 @@ config MSM_PROC_COMM
 	bool
 
 config MSM_SMD
-	bool
+	depends on MSM_SMEM
+	bool "MSM Shared Memory Driver (SMD)"
+	help
+	  Support for the shared memory interface between the apps
+	  processor and the baseband processor.  Provides access to
+	  the "shared heap", as well as virtual serial channels
+	  used to communicate with various services on the baseband
+	  processor.
 
 config MSM_NATIVE_RESTART
 	bool
