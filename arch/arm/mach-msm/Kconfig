@@ -9,6 +9,7 @@ config ARCH_APQ8064
 	select ARM_GIC
 	select CPU_V7
 	select MSM_SCM if SMP
+	select HAVE_ARM_ARCH_TIMER
 	select MSM_GPIOMUX
 	select MSM_REMOTE_SPINLOCK_SFPB
 	select MSM_PIL
@@ -34,6 +35,7 @@ config ARCH_APQ8064
 	select USE_USER_ACCESSIBLE_TIMERS
 	select ARM_USE_USER_ACCESSIBLE_TIMERS
 	select MSM_USE_USER_ACCESSIBLE_TIMERS
+	select MSM_SMD
 
 config ARCH_MSM7X00A
 	bool "MSM7x00A / MSM7x01A"
@@ -82,6 +84,7 @@ config ARCH_MSM8960
 	select HAVE_SMP
 	select GPIO_MSM_V2
 	select MSM_SCM if SMP
+	select MSM_SMD
 	select SOC_BUS
 
 endmenu
