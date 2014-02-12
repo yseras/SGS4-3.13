@@ -17,10 +17,7 @@
 
 extern unsigned long zero_pfn;
 
-#ifdef CONFIG_ARM_USE_USER_ACCESSIBLE_TIMERS
-#ifndef CONFIG_ARM_USER_ACCESSIBLE_TIMER_BASE
-#define CONFIG_ARM_USER_ACCESSIBLE_TIMER_BASE 0xfffef000
-#endif
+#define CONFIG_ARM_USER_ACCESSIBLE_TIMER_BASE 0
 static inline void setup_user_timer_offset(unsigned long addr)
 {
 }
