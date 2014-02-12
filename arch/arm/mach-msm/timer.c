@@ -1125,6 +1125,6 @@ void __init msm_timer_init(void)
 #endif
 }
 
-struct sys_timer msm_timer = {
+/*struct sys_timer msm_timer = {
 	.init = msm_timer_init
-};
+};*/
