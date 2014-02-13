@@ -35,6 +35,7 @@
 #include <linux/msm_thermal.h>
 #include <linux/i2c/atmel_mxt_ts.h>
 #include <linux/cyttsp-qc.h>
+#include <linux/mfd/pm8xxx/gpio.h>
 #ifdef CONFIG_HAPTIC_ISA1200
 #include <linux/i2c/isa1200.h>
 #endif
