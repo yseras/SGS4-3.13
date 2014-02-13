@@ -1,5 +1,5 @@
 obj-y += timer.o
-obj-y += clock.o
+#obj-y += clock.o
 
 obj-$(CONFIG_MSM_VIC) += irq-vic.o
 
@@ -30,8 +30,9 @@ obj-$(CONFIG_ARCH_MSM_DT) += board-dt.o
 obj-$(CONFIG_MSM_GPIOMUX) += gpiomux.o
 obj-$(CONFIG_ARCH_QSD8X50) += gpiomux-8x50.o
 
-# APQ8064 support; everything below has been edited in at the bottom to maintain line numbers for future patches
+# APQ8064 support; everything below has been added in at the bottom to maintain line numbers for future patches
 #obj-$(CONFIG_ARCH_MSM_KRAIT) += krait-scm.o
+obj-$(CONFIG_PM) += pm-boot.o
 obj-$(CONFIG_ARCH_MSM_KRAIT) += acpuclock-krait.o msm-krait-l2-accessors.o
 obj-$(CONFIG_ARCH_APQ8064) += acpuclock.o acpuclock-8064.o
 obj-$(CONFIG_ARCH_APQ8064) += dma.o io.o
