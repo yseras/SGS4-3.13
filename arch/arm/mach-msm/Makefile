@@ -32,12 +32,11 @@ obj-$(CONFIG_ARCH_QSD8X50) += gpiomux-8x50.o
 
 # APQ8064 support; everything below has been edited in at the bottom to maintain line numbers for future patches
 #obj-$(CONFIG_ARCH_MSM_KRAIT) += krait-scm.o
-obj-$(CONFIG_ARCH_MSM_KRAIT) += msm-krait-l2-accessors.o
-obj-$(CONFIG_ARCH_MSM_KRAIT) += acpuclock-krait.o
-obj-$(CONFIG_ARCH_APQ8064) += acpuclock.o dma.o io.o
-obj-$(CONFIG_ARCH_APQ8064) += acpuclock-8064.o
-obj-$(CONFIG_ARCH_APQ8064) += gpiomux-v2.o
-obj-$(CONFIG_ARCH_APQ8064) += board-8064-gpiomux.o #board-8064.o devices-8064.o board-8064-pmic.o board-8064-storage.o board-8064-camera.o board-8064-display.o board-8064-gpu.o
+obj-$(CONFIG_ARCH_MSM_KRAIT) += acpuclock-krait.o msm-krait-l2-accessors.o
+obj-$(CONFIG_ARCH_APQ8064) += acpuclock.o acpuclock-8064.o
+obj-$(CONFIG_ARCH_APQ8064) += dma.o io.o
+obj-$(CONFIG_ARCH_APQ8064) += gpiomux-v2.o board-8064-gpiomux.o 
+obj-$(CONFIG_ARCH_APQ8064) += #board-8064.o devices-8064.o board-8064-pmic.o board-8064-storage.o board-8064-camera.o board-8064-display.o board-8064-gpu.o
 
 # temporarily commented out until more work can be done here
 #obj-$(CONFIG_MACH_JF_TMO) += board-jf_tmo.o board-jf_tmo-gpiomux.o
