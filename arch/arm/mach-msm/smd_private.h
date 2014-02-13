@@ -241,4 +241,13 @@ extern void smd_proc_set_skip_pil(unsigned pid, bool skip_pil);
 extern void smd_set_edge_initialized(uint32_t edge);
 extern void smd_cfg_smd_intr(uint32_t proc, uint32_t mask, void *ptr);
 extern void smd_cfg_smsm_intr(uint32_t proc, uint32_t mask, void *ptr);
+
+enum {
+	SYS_MEMORY = 1,        /* system memory*/
+	BOOT_REGION_MEMORY1,   /* boot loader memory 1*/
+	BOOT_REGION_MEMORY2,   /* boot loader memory 2,reserved*/
+	APPSBL_MEMORY,         /* apps boot loader memory*/
+	APPS_MEMORY,           /* apps  usage memory*/
+};
+
 #endif
