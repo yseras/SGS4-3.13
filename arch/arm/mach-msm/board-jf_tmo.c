@@ -5181,7 +5181,7 @@ static void __init apq8064_common_init(void)
 	}
 	msm_spm_init(msm_spm_data, ARRAY_SIZE(msm_spm_data));
 	msm_spm_l2_init(msm_spm_l2_data);
-	BUG_ON(msm_pm_boot_init(&msm_pm_boot_pdata));
+	/*BUG_ON(msm_pm_boot_init(&msm_pm_boot_pdata));*/
 	apq8064_epm_adc_init();
 	samsung_sys_class_init();
 
@@ -5334,7 +5334,7 @@ MACHINE_START(JF, "SAMSUNG JF")
 	.reserve = apq8064_reserve,
 	.init_irq = apq8064_init_irq,
 	.handle_irq = gic_handle_irq,
-	.timer = msm_timer_init,
+	/*.timer = msm_timer_init,*/
 	.init_machine = samsung_jf_init,
 	.init_early = apq8064_allocate_memory_regions,
 	.init_very_early = apq8064_early_reserve,
