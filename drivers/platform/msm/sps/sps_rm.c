@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -18,6 +18,7 @@
 #include <linux/list.h>		/* list_head */
 #include <linux/slab.h>		/* kzalloc() */
 #include <linux/memory.h>	/* memset */
+#include <linux/interrupt.h>
 
 #include "spsi.h"
 #include "sps_core.h"
@@ -498,8 +499,8 @@ static struct sps_connection *sps_rm_create(struct sps_pipe *pipe)
 		map->desc.phys_base = map->alloc_desc_base;
 		map->desc.base = spsi_get_mem_ptr(map->desc.phys_base);
 		if (map->desc.base == NULL) {
-			SPS_ERR("sps:Cannot get virt addr for I/O buffer:0x%x",
-				map->desc.phys_base);
+			SPS_ERR("sps:Cannot get virt addr for I/O buffer:%pa",
+				&map->desc.phys_base);
 			goto exit_err;
 		}
 	}
@@ -515,8 +516,8 @@ static struct sps_connection *sps_rm_create(struct sps_pipe *pipe)
 		map->data.phys_base = map->alloc_data_base;
 		map->data.base = spsi_get_mem_ptr(map->data.phys_base);
 		if (map->data.base == NULL) {
-			SPS_ERR("sps:Cannot get virt addr for I/O buffer:0x%x",
-				map->data.phys_base);
+			SPS_ERR("sps:Cannot get virt addr for I/O buffer:%pa",
+				&map->data.phys_base);
 			goto exit_err;
 		}
 	}
@@ -782,6 +783,8 @@ int sps_rm_state_change(struct sps_pipe *pipe, u32 state)
 	if (pipe->client_state == SPS_STATE_CONNECT &&
 	    state == SPS_STATE_DISCONNECT) {
 		struct sps_connection *map;
+		struct sps_bam *bam = pipe->bam;
+		unsigned long flags;
 		u32 pipe_index;
 
 		if (pipe->connect.mode == SPS_MODE_SRC)
@@ -789,7 +792,12 @@ int sps_rm_state_change(struct sps_pipe *pipe, u32 state)
 		else
 			pipe_index = pipe->map->dest.pipe_index;
 
+		if (bam->props.irq > 0)
+			synchronize_irq(bam->props.irq);
 
+		spin_lock_irqsave(&bam->isr_lock, flags);
+		pipe->disconnecting = true;
+		spin_unlock_irqrestore(&bam->isr_lock, flags);
 		result = sps_bam_pipe_disconnect(pipe->bam, pipe_index);
 		if (result) {
 			SPS_ERR("sps:Failed to disconnect BAM 0x%x pipe %d",
