@@ -55,7 +55,7 @@ static LIST_HEAD(regulator_map_list);
 static LIST_HEAD(regulator_ena_gpio_list);
 static LIST_HEAD(regulator_supply_alias_list);
 static bool has_full_constraints;
-static bool board_wants_dummy_regulator;
+/*static bool board_wants_dummy_regulator;*/
 static int suppress_info_printing;
 
 static struct dentry *debugfs_root;
