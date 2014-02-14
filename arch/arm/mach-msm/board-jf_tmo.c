@@ -13,7 +13,6 @@
 #include <linux/kernel.h>
 #include <linux/bitops.h>
 #include <linux/platform_device.h>
-#include <linux/gpio.h>
 #include <linux/io.h>
 #include <linux/irq.h>
 #include <linux/i2c.h>
@@ -47,7 +46,6 @@
 #include <linux/irqchip/arm-gic.h>
 #include <mach/mmc.h>
 #include <linux/platform_data/qcom_wcnss_device.h>
-#include <linux/gpio.h>
 #ifdef CONFIG_VIBETONZ
 #include <linux/vibrator.h>
 #endif
