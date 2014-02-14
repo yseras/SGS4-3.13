@@ -9,5 +9,6 @@ obj-$(CONFIG_NFC_WILINK)	+= nfcwilink.o
 obj-$(CONFIG_NFC_MEI_PHY)	+= mei_phy.o
 obj-$(CONFIG_NFC_SIM)		+= nfcsim.o
 obj-$(CONFIG_NFC_PORT100)	+= port100.o
+obj-$(CONFIG_BCM2079X)		+= bcm2079x-i2c.o
 
 ccflags-$(CONFIG_NFC_DEBUG) := -DDEBUG
