@@ -44,6 +44,7 @@
 #include <linux/i2c/sx150x.h>
 #include <asm/mach-types.h>
 #include <asm/mach/arch.h>
+#include <linux/irqchip/arm-gic.h>
 #include <mach/mmc.h>
 #include <linux/platform_data/qcom_wcnss_device.h>
 #include <linux/gpio.h>

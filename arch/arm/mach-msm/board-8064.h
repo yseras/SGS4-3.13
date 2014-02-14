@@ -13,8 +13,8 @@
 #ifndef __ARCH_ARM_MACH_MSM_BOARD_APQ8064_H
 #define __ARCH_ARM_MACH_MSM_BOARD_APQ8064_H
 
-/* #include <linux/regulator/msm-gpio-regulator.h>
-#include <linux/mfd/pm8xxx/pm8921.h> */
+/* #include <linux/regulator/msm-gpio-regulator.h> */
+#include <linux/mfd/pm8xxx/pm8921.h>
 #include <linux/mfd/pm8xxx/pm8821.h>
 #include <mach/msm_memtypes.h>
 #include <mach/irqs.h>
