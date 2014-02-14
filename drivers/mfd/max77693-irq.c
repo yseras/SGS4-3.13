@@ -1,10 +1,8 @@
 /*
  * max77693-irq.c - Interrupt controller support for MAX77693
  *
- * Copyright (C) 2012 Samsung Electronics Co.Ltd
+ * Copyright (C) 2011 Samsung Electronics Co.Ltd
  * SangYoung Son <hello.son@samsung.com>
- *
- * This program is not provided / owned by Maxim Integrated Products.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,14 +18,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * This driver is based on max8997-irq.c
+ * This driver is based on max77693-irq.c
  */
 
 #include <linux/err.h>
 #include <linux/irq.h>
 #include <linux/interrupt.h>
-#include <linux/module.h>
-#include <linux/irqdomain.h>
+#include <linux/gpio.h>
 #include <linux/mfd/max77693.h>
 #include <linux/mfd/max77693-private.h>
 
@@ -40,14 +37,14 @@ static const u8 max77693_mask_reg[] = {
 	[MUIC_INT3] = MAX77693_MUIC_REG_INTMASK3,
 };
 
-static struct regmap *max77693_get_regmap(struct max77693_dev *max77693,
+static struct i2c_client *get_i2c(struct max77693_dev *max77693,
 				enum max77693_irq_source src)
 {
 	switch (src) {
 	case LED_INT ... CHG_INT:
-		return max77693->regmap;
+		return max77693->i2c;
 	case MUIC_INT1 ... MUIC_INT3:
-		return max77693->regmap_muic;
+		return max77693->muic;
 	default:
 		return ERR_PTR(-EINVAL);
 	}
@@ -65,21 +62,28 @@ static const struct max77693_irq_data max77693_irqs[] = {
 	DECLARE_IRQ(MAX77693_LED_IRQ_FLED2_SHORT,	LED_INT, 1 << 1),
 	DECLARE_IRQ(MAX77693_LED_IRQ_FLED1_OPEN,	LED_INT, 1 << 2),
 	DECLARE_IRQ(MAX77693_LED_IRQ_FLED1_SHORT,	LED_INT, 1 << 3),
-	DECLARE_IRQ(MAX77693_LED_IRQ_MAX_FLASH,		LED_INT, 1 << 4),
+	DECLARE_IRQ(MAX77693_LED_IRQ_MAX_FLASH,	LED_INT, 1 << 4),
 
 	DECLARE_IRQ(MAX77693_TOPSYS_IRQ_T120C_INT,	TOPSYS_INT, 1 << 0),
 	DECLARE_IRQ(MAX77693_TOPSYS_IRQ_T140C_INT,	TOPSYS_INT, 1 << 1),
-	DECLARE_IRQ(MAX77693_TOPSYS_IRQ_LOWSYS_INT,	TOPSYS_INT, 1 << 3),
+	DECLARE_IRQ(MAX77693_TOPSYS_IRQLOWSYS_INT,	TOPSYS_INT, 1 << 3),
 
-	DECLARE_IRQ(MAX77693_CHG_IRQ_BYP_I,		CHG_INT, 1 << 0),
-	DECLARE_IRQ(MAX77693_CHG_IRQ_THM_I,		CHG_INT, 1 << 2),
-	DECLARE_IRQ(MAX77693_CHG_IRQ_BAT_I,		CHG_INT, 1 << 3),
-	DECLARE_IRQ(MAX77693_CHG_IRQ_CHG_I,		CHG_INT, 1 << 4),
-	DECLARE_IRQ(MAX77693_CHG_IRQ_CHGIN_I,		CHG_INT, 1 << 6),
+	DECLARE_IRQ(MAX77693_CHG_IRQ_BYP_I,	CHG_INT, 1 << 0),
+#if defined(CONFIG_CHARGER_MAX77803)
+	DECLARE_IRQ(MAX77693_CHG_IRQ_BATP_I,	CHG_INT, 1 << 2),
+#else
+	DECLARE_IRQ(MAX77693_CHG_IRQ_THM_I,	CHG_INT, 1 << 2),
+#endif
+	DECLARE_IRQ(MAX77693_CHG_IRQ_BAT_I,	CHG_INT, 1 << 3),
+	DECLARE_IRQ(MAX77693_CHG_IRQ_CHG_I,	CHG_INT, 1 << 4),
+#if defined(CONFIG_CHARGER_MAX77803)
+	DECLARE_IRQ(MAX77693_CHG_IRQ_WCIN_I,	CHG_INT, 1 << 5),
+#endif
+	DECLARE_IRQ(MAX77693_CHG_IRQ_CHGIN_I,	CHG_INT, 1 << 6),
 
-	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT1_ADC,		MUIC_INT1, 1 << 0),
-	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT1_ADC_LOW,	MUIC_INT1, 1 << 1),
-	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT1_ADC_ERR,	MUIC_INT1, 1 << 2),
+	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT1_ADC,	MUIC_INT1, 1 << 0),
+	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT1_ADCLOW,	MUIC_INT1, 1 << 1),
+	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT1_ADCERR,	MUIC_INT1, 1 << 2),
 	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT1_ADC1K,	MUIC_INT1, 1 << 3),
 
 	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT2_CHGTYP,	MUIC_INT2, 1 << 0),
@@ -89,12 +93,12 @@ static const struct max77693_irq_data max77693_irqs[] = {
 	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT2_VBVOLT,	MUIC_INT2, 1 << 4),
 	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT2_VIDRM,	MUIC_INT2, 1 << 5),
 
-	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT3_EOC,		MUIC_INT3, 1 << 0),
+	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT3_EOC,	MUIC_INT3, 1 << 0),
 	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT3_CGMBC,	MUIC_INT3, 1 << 1),
-	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT3_OVP,		MUIC_INT3, 1 << 2),
-	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT3_MBCCHG_ERR,	MUIC_INT3, 1 << 3),
-	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT3_CHG_ENABLED,	MUIC_INT3, 1 << 4),
-	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT3_BAT_DET,	MUIC_INT3, 1 << 5),
+	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT3_OVP,	MUIC_INT3, 1 << 2),
+	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT3_MBCCHGERR,	MUIC_INT3, 1 << 3),
+	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT3_CHGENABLED,	MUIC_INT3, 1 << 4),
+	DECLARE_IRQ(MAX77693_MUIC_IRQ_INT3_BATDET,	MUIC_INT3, 1 << 5),
 };
 
 static void max77693_irq_lock(struct irq_data *data)
@@ -111,14 +115,14 @@ static void max77693_irq_sync_unlock(struct irq_data *data)
 
 	for (i = 0; i < MAX77693_IRQ_GROUP_NR; i++) {
 		u8 mask_reg = max77693_mask_reg[i];
-		struct regmap *map = max77693_get_regmap(max77693, i);
+		struct i2c_client *i2c = get_i2c(max77693, i);
 
 		if (mask_reg == MAX77693_REG_INVALID ||
-				IS_ERR_OR_NULL(map))
+				IS_ERR_OR_NULL(i2c))
 			continue;
 		max77693->irq_masks_cache[i] = max77693->irq_masks_cur[i];
 
-		max77693_write_reg(map, max77693_mask_reg[i],
+		max77693_write_reg(i2c, max77693_mask_reg[i],
 				max77693->irq_masks_cur[i]);
 	}
 
@@ -128,15 +132,14 @@ static void max77693_irq_sync_unlock(struct irq_data *data)
 static const inline struct max77693_irq_data *
 irq_to_max77693_irq(struct max77693_dev *max77693, int irq)
 {
-	struct irq_data *data = irq_get_irq_data(irq);
-	return &max77693_irqs[data->hwirq];
+	return &max77693_irqs[irq - max77693->irq_base];
 }
 
 static void max77693_irq_mask(struct irq_data *data)
 {
 	struct max77693_dev *max77693 = irq_get_chip_data(data->irq);
 	const struct max77693_irq_data *irq_data =
-				irq_to_max77693_irq(max77693, data->irq);
+	    irq_to_max77693_irq(max77693, data->irq);
 
 	if (irq_data->group >= MAX77693_IRQ_GROUP_NR)
 		return;
@@ -170,45 +173,70 @@ static struct irq_chip max77693_irq_chip = {
 	.irq_unmask		= max77693_irq_unmask,
 };
 
-#define MAX77693_IRQSRC_CHG		(1 << 0)
-#define MAX77693_IRQSRC_TOP		(1 << 1)
-#define MAX77693_IRQSRC_FLASH		(1 << 2)
-#define MAX77693_IRQSRC_MUIC		(1 << 3)
 static irqreturn_t max77693_irq_thread(int irq, void *data)
 {
 	struct max77693_dev *max77693 = data;
 	u8 irq_reg[MAX77693_IRQ_GROUP_NR] = {};
 	u8 irq_src;
 	int ret;
-	int i, cur_irq;
+	int i;
+	pr_debug("%s: irq gpio pre-state(0x%02x)\n", __func__,
+		gpio_get_value(max77693->irq_gpio));
 
-	ret = max77693_read_reg(max77693->regmap, MAX77693_PMIC_REG_INTSRC,
-				&irq_src);
+clear_retry:
+	ret = max77693_read_reg(max77693->i2c,
+		MAX77693_PMIC_REG_INTSRC, &irq_src);
 	if (ret < 0) {
 		dev_err(max77693->dev, "Failed to read interrupt source: %d\n",
 				ret);
 		return IRQ_NONE;
 	}
+	pr_info("%s: interrupt source(0x%02x)\n", __func__, irq_src);
 
-	if (irq_src & MAX77693_IRQSRC_CHG)
+	if (irq_src & MAX77693_IRQSRC_CHG) {
 		/* CHG_INT */
-		ret = max77693_read_reg(max77693->regmap, MAX77693_CHG_REG_CHG_INT,
+		ret = max77693_read_reg(max77693->i2c, MAX77693_CHG_REG_CHG_INT,
 				&irq_reg[CHG_INT]);
+		pr_info("%s: charger interrupt(0x%02x)\n",
+			__func__, irq_reg[CHG_INT]);
+	}
 
-	if (irq_src & MAX77693_IRQSRC_TOP)
+	if (irq_src & MAX77693_IRQSRC_TOP) {
 		/* TOPSYS_INT */
-		ret = max77693_read_reg(max77693->regmap,
-			MAX77693_PMIC_REG_TOPSYS_INT, &irq_reg[TOPSYS_INT]);
+		ret = max77693_read_reg(max77693->i2c,
+				MAX77693_PMIC_REG_TOPSYS_INT,
+				&irq_reg[TOPSYS_INT]);
+		pr_info("%s: topsys interrupt(0x%02x)\n",
+			__func__, irq_reg[TOPSYS_INT]);
+	}
 
-	if (irq_src & MAX77693_IRQSRC_FLASH)
+	if (irq_src & MAX77693_IRQSRC_FLASH) {
 		/* LED_INT */
-		ret = max77693_read_reg(max77693->regmap,
-			MAX77693_LED_REG_FLASH_INT, &irq_reg[LED_INT]);
+		ret = max77693_read_reg(max77693->i2c,
+				MAX77693_LED_REG_FLASH_INT,
+				&irq_reg[LED_INT]);
+		pr_info("%s: led interrupt(0x%02x)\n",
+			__func__, irq_reg[LED_INT]);
+	}
 
-	if (irq_src & MAX77693_IRQSRC_MUIC)
+	if (irq_src & MAX77693_IRQSRC_MUIC) {
 		/* MUIC INT1 ~ INT3 */
-		max77693_bulk_read(max77693->regmap_muic, MAX77693_MUIC_REG_INT1,
-			MAX77693_NUM_IRQ_MUIC_REGS, &irq_reg[MUIC_INT1]);
+		max77693_bulk_read(max77693->muic,
+		MAX77693_MUIC_REG_INT1,
+		MAX77693_NUM_IRQ_MUIC_REGS,
+				&irq_reg[MUIC_INT1]);
+		pr_info("%s: muic interrupt(0x%02x, 0x%02x, 0x%02x)\n",
+			__func__, irq_reg[MUIC_INT1],
+			irq_reg[MUIC_INT2], irq_reg[MUIC_INT3]);
+	}
+
+	pr_debug("%s: irq gpio post-state(0x%02x)\n", __func__,
+		gpio_get_value(max77693->irq_gpio));
+
+	if (gpio_get_value(max77693->irq_gpio) == 0) {
+		pr_warn("%s: irq_gpio is not High!\n", __func__);
+		goto clear_retry;
+	}
 
 	/* Apply masking */
 	for (i = 0; i < MAX77693_IRQ_GROUP_NR; i++) {
@@ -220,11 +248,8 @@ static irqreturn_t max77693_irq_thread(int irq, void *data)
 
 	/* Report */
 	for (i = 0; i < MAX77693_IRQ_NR; i++) {
-		if (irq_reg[max77693_irqs[i].group] & max77693_irqs[i].mask) {
-			cur_irq = irq_find_mapping(max77693->irq_domain, i);
-			if (cur_irq)
-				handle_nested_irq(cur_irq);
-		}
+		if (irq_reg[max77693_irqs[i].group] & max77693_irqs[i].mask)
+			handle_nested_irq(max77693->irq_base + i);
 	}
 
 	return IRQ_HANDLED;
@@ -232,44 +257,48 @@ static irqreturn_t max77693_irq_thread(int irq, void *data)
 
 int max77693_irq_resume(struct max77693_dev *max77693)
 {
-	if (max77693->irq)
-		max77693_irq_thread(0, max77693);
+	int ret = 0;
+	if (max77693->irq && max77693->irq_base)
+		ret = max77693_irq_thread(max77693->irq_base, max77693);
 
-	return 0;
+	dev_info(max77693->dev, "%s: irq_resume ret=%d", __func__, ret);
+
+	return ret >= 0 ? 0 : ret;
 }
-
-static int max77693_irq_domain_map(struct irq_domain *d, unsigned int irq,
-				irq_hw_number_t hw)
-{
-	struct max77693_dev *max77693 = d->host_data;
-
-	irq_set_chip_data(irq, max77693);
-	irq_set_chip_and_handler(irq, &max77693_irq_chip, handle_edge_irq);
-	irq_set_nested_thread(irq, 1);
-#ifdef CONFIG_ARM
-	set_irq_flags(irq, IRQF_VALID);
-#else
-	irq_set_noprobe(irq);
-#endif
-	return 0;
-}
-
-static struct irq_domain_ops max77693_irq_domain_ops = {
-	.map = max77693_irq_domain_map,
-};
 
 int max77693_irq_init(struct max77693_dev *max77693)
 {
-	struct irq_domain *domain;
 	int i;
-	int ret = 0;
-	u8 intsrc_mask;
+	int cur_irq;
+	int ret;
+	u8 i2c_data;
+
+	if (!max77693->irq_gpio) {
+		dev_warn(max77693->dev, "No interrupt specified.\n");
+		max77693->irq_base = 0;
+		return 0;
+	}
+
+	if (!max77693->irq_base) {
+		dev_err(max77693->dev, "No interrupt base specified.\n");
+		return 0;
+	}
 
 	mutex_init(&max77693->irqlock);
 
+	max77693->irq = gpio_to_irq(max77693->irq_gpio);
+	ret = gpio_request(max77693->irq_gpio, "if_pmic_irq");
+	if (ret) {
+		dev_err(max77693->dev, "%s: failed requesting gpio %d\n",
+			__func__, max77693->irq_gpio);
+		return ret;
+	}
+	gpio_direction_input(max77693->irq_gpio);
+	gpio_free(max77693->irq_gpio);
+
 	/* Mask individual interrupt sources */
 	for (i = 0; i < MAX77693_IRQ_GROUP_NR; i++) {
-		struct regmap *map;
+		struct i2c_client *i2c;
 		/* MUIC IRQ  0:MASK 1:NOT MASK */
 		/* Other IRQ 1:MASK 0:NOT MASK */
 		if (i >= MUIC_INT1 && i <= MUIC_INT3) {
@@ -279,54 +308,56 @@ int max77693_irq_init(struct max77693_dev *max77693)
 			max77693->irq_masks_cur[i] = 0xff;
 			max77693->irq_masks_cache[i] = 0xff;
 		}
-		map = max77693_get_regmap(max77693, i);
+		i2c = get_i2c(max77693, i);
 
-		if (IS_ERR_OR_NULL(map))
+		if (IS_ERR_OR_NULL(i2c))
 			continue;
 		if (max77693_mask_reg[i] == MAX77693_REG_INVALID)
 			continue;
 		if (i >= MUIC_INT1 && i <= MUIC_INT3)
-			max77693_write_reg(map, max77693_mask_reg[i], 0x00);
+			max77693_write_reg(i2c, max77693_mask_reg[i], 0x00);
 		else
-			max77693_write_reg(map, max77693_mask_reg[i], 0xff);
+			max77693_write_reg(i2c, max77693_mask_reg[i], 0xff);
 	}
 
-	domain = irq_domain_add_linear(NULL, MAX77693_IRQ_NR,
-					&max77693_irq_domain_ops, max77693);
-	if (!domain) {
-		dev_err(max77693->dev, "could not create irq domain\n");
-		ret = -ENODEV;
-		goto err_irq;
+	/* Register with genirq */
+	for (i = 0; i < MAX77693_IRQ_NR; i++) {
+		cur_irq = i + max77693->irq_base;
+		irq_set_chip_data(cur_irq, max77693);
+		irq_set_chip_and_handler(cur_irq, &max77693_irq_chip,
+					 handle_edge_irq);
+		irq_set_nested_thread(cur_irq, 1);
+#ifdef CONFIG_ARM
+		set_irq_flags(cur_irq, IRQF_VALID);
+#else
+		irq_set_noprobe(cur_irq);
+#endif
 	}
-	max77693->irq_domain = domain;
 
 	/* Unmask max77693 interrupt */
-	ret = max77693_read_reg(max77693->regmap,
-			MAX77693_PMIC_REG_INTSRC_MASK, &intsrc_mask);
-	if (ret < 0) {
-		dev_err(max77693->dev, "fail to read PMIC register\n");
-		goto err_irq;
+	ret = max77693_read_reg(max77693->i2c, MAX77693_PMIC_REG_INTSRC_MASK,
+			  &i2c_data);
+	if (ret) {
+		dev_err(max77693->dev, "%s: fail to read muic reg\n", __func__);
+		return ret;
 	}
 
-	intsrc_mask &= ~(MAX77693_IRQSRC_CHG);
-	intsrc_mask &= ~(MAX77693_IRQSRC_FLASH);
-	intsrc_mask &= ~(MAX77693_IRQSRC_MUIC);
-	ret = max77693_write_reg(max77693->regmap,
-			MAX77693_PMIC_REG_INTSRC_MASK, intsrc_mask);
-	if (ret < 0) {
-		dev_err(max77693->dev, "fail to write PMIC register\n");
-		goto err_irq;
-	}
+	i2c_data &= ~(MAX77693_IRQSRC_CHG);	/* Unmask charger interrupt */
+	i2c_data &= ~(MAX77693_IRQSRC_MUIC);	/* Unmask muic interrupt */
+	max77693_write_reg(max77693->i2c, MAX77693_PMIC_REG_INTSRC_MASK,
+			   i2c_data);
 
 	ret = request_threaded_irq(max77693->irq, NULL, max77693_irq_thread,
 				   IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
 				   "max77693-irq", max77693);
-	if (ret)
+
+	if (ret) {
 		dev_err(max77693->dev, "Failed to request IRQ %d: %d\n",
 			max77693->irq, ret);
+		return ret;
+	}
 
-err_irq:
-	return ret;
+	return 0;
 }
 
 void max77693_irq_exit(struct max77693_dev *max77693)

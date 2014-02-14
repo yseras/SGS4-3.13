@@ -1,10 +1,8 @@
 /*
  * max77693.h - Driver for the Maxim 77693
  *
- *  Copyright (C) 2012 Samsung Electrnoics
+ *  Copyright (C) 2011 Samsung Electrnoics
  *  SangYoung Son <hello.son@samsung.com>
- *
- * This program is not provided / owned by Maxim Integrated Products.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +20,7 @@
  *
  * This driver is based on max8997.h
  *
- * MAX77693 has PMIC, Charger, Flash LED, Haptic, MUIC devices.
+ * MAX77693 has Charger, Flash LED, Haptic, MUIC devices.
  * The devices share the same I2C bus and included in
  * this mfd driver.
  */
@@ -30,45 +28,124 @@
 #ifndef __LINUX_MFD_MAX77693_H
 #define __LINUX_MFD_MAX77693_H
 
+#include <linux/regulator/consumer.h>
+#include <linux/battery/sec_charger.h>
+
+enum {
+	MAX77693_MUIC_DETACHED = 0,
+	MAX77693_MUIC_ATTACHED
+};
+
 /* MAX77686 regulator IDs */
 enum max77693_regulators {
 	MAX77693_ESAFEOUT1 = 0,
 	MAX77693_ESAFEOUT2,
+
 	MAX77693_CHARGER,
+
 	MAX77693_REG_MAX,
 };
 
-struct max77693_regulator_data {
-	int id;
-	struct regulator_init_data *initdata;
-	struct device_node *of_node;
-};
-
-struct max77693_reg_data {
+struct max77693_charger_reg_data {
 	u8 addr;
 	u8 data;
 };
 
-struct max77693_muic_platform_data {
-	struct max77693_reg_data *init_data;
+struct max77693_charger_platform_data {
+	struct max77693_charger_reg_data *init_data;
 	int num_init_data;
+	sec_battery_platform_data_t *sec_battery;
+#if defined(CONFIG_WIRELESS_CHARGING) || defined(CONFIG_CHARGER_MAX77803)
+	int wpc_irq_gpio;
+	int vbus_irq_gpio;
+	bool wc_pwr_det;
+#endif
+};
 
-	int detcable_delay_ms;
+#ifdef CONFIG_VIBETONZ
+#define MAX8997_MOTOR_REG_CONFIG2	0x2
+#define MOTOR_LRA			(1<<7)
+#define MOTOR_EN			(1<<6)
+#define EXT_PWM				(0<<5)
+#define DIVIDER_128			(1<<1)
+#define DIVIDER_256			0x3
 
-	/*
-	 * Default usb/uart path whether UART/USB or AUX_UART/AUX_USB
-	 * h/w path of COMP2/COMN1 on CONTROL1 register.
-	 */
-	int path_usb;
-	int path_uart;
+struct max77693_haptic_platform_data {
+	u16 max_timeout;
+	u16 duty;
+	u16 period;
+	u16 reg2;
+	char *regulator_name;
+	unsigned int pwm_id;
+
+	void (*init_hw) (void);
+	void (*motor_en) (bool);
+};
+#endif
+
+#ifdef CONFIG_LEDS_MAX77693
+struct max77693_led_platform_data;
+#endif
+
+struct max77693_regulator_data {
+	int id;
+	struct regulator_init_data *initdata;
 };
 
 struct max77693_platform_data {
-	/* regulator data */
+	/* IRQ */
+	int irq_base;
+	int irq_gpio;
+	int wc_irq_gpio;
+	int wakeup;
+	struct max77693_muic_data *muic;
 	struct max77693_regulator_data *regulators;
 	int num_regulators;
-
-	/* muic data */
-	struct max77693_muic_platform_data *muic_data;
+#ifdef CONFIG_VIBETONZ
+	/* haptic motor data */
+	struct max77693_haptic_platform_data *haptic_data;
+#endif
+#ifdef CONFIG_LEDS_MAX77693
+	/* led (flash/torch) data */
+	struct max77693_led_platform_data *led_data;
+#endif
+#if defined(CONFIG_CHARGER_MAX77693)
+	sec_battery_platform_data_t *charger_data;
+#endif
 };
-#endif	/* __LINUX_MFD_MAX77693_H */
+
+enum cable_type_muic;
+struct max77693_muic_data {
+	void (*usb_cb) (u8 attached);
+	void (*uart_cb) (u8 attached);
+	int (*charger_cb) (enum cable_type_muic);
+	void (*deskdock_cb) (bool attached);
+	void (*cardock_cb) (bool attached);
+	void (*smartdock_cb) (bool attached);
+	void (*audiodock_cb) (bool attached);
+	void (*mhl_cb) (int attached);
+	void (*init_cb) (void);
+	int (*set_safeout) (int path);
+	 bool(*is_mhl_attached) (void);
+	int (*cfg_uart_gpio) (void);
+	void (*jig_uart_cb) (int path);
+	int (*host_notify_cb) (int enable);
+	int gpio_usb_sel;
+	int sw_path;
+	int uart_path;
+#ifdef CONFIG_VIDEO_MHL_V2
+	struct wake_lock mhl_wake_lock;
+#endif
+	void (*jig_state) (int jig_state);
+
+};
+
+
+#ifdef CONFIG_MFD_MAX77693
+extern struct max77693_muic_data max77693_muic;
+extern struct max77693_regulator_data max77693_regulators[];
+#endif
+#ifdef CONFIG_VIDEO_MHL_V2
+int acc_register_notifier(struct notifier_block *nb);
+#endif
+#endif				/* __LINUX_MFD_MAX77693_H */
