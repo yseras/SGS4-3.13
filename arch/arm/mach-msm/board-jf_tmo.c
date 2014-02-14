@@ -44,7 +44,6 @@
 #include <linux/i2c/sx150x.h>
 #include <asm/mach-types.h>
 #include <asm/mach/arch.h>
-#include <linux/irqchip/arm-gic.h>
 #include <mach/mmc.h>
 #include <linux/platform_data/qcom_wcnss_device.h>
 #include <linux/gpio.h>
@@ -5330,13 +5329,12 @@ static void __init samsung_jf_init(void)
 }
 
 MACHINE_START(JF, "SAMSUNG JF")
-	.map_io = apq8064_map_io,
-	.reserve = apq8064_reserve,
-	.init_irq = apq8064_init_irq,
-	.handle_irq = gic_handle_irq,
-	/*.timer = msm_timer_init,*/
-	.init_machine = samsung_jf_init,
-	.init_early = apq8064_allocate_memory_regions,
-	.init_very_early = apq8064_early_reserve,
-	.restart = msm_restart,
+	.map_io 		= apq8064_map_io,
+	.reserve 		= apq8064_reserve,
+	.init_irq 		= apq8064_init_irq,
+	.init_time		= msm_timer_init,
+	.init_machine 		= samsung_jf_init,
+	.init_early 		= apq8064_allocate_memory_regions,
+	.init_very_early 	= apq8064_early_reserve,
+	.restart 		= msm_restart,
 MACHINE_END
