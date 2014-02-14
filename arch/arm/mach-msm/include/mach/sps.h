@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -16,6 +16,34 @@
 #define _SPS_H_
 
 #include <linux/types.h>	/* u32 */
+
+#ifdef CONFIG_ARM_LPAE
+
+/* Returns upper 4bits of 36bits physical address */
+#define SPS_GET_UPPER_ADDR(addr) ((addr & 0xF00000000ULL) >> 32)
+
+/* Returns 36bits physical address from 32bit address &
+ * flags word */
+#define DESC_FULL_ADDR(flags, addr) (((flags & 0xF) << 32) | addr)
+
+/* Returns flags word with flags and 4bit upper address
+ * from flags and 36bit physical address */
+#define DESC_FLAG_WORD(flags, addr) (((addr & 0xF00000000ULL) >> 32) | flags)
+
+#else
+
+#define SPS_GET_UPPER_ADDR(addr) (0)
+#define DESC_FULL_ADDR(flags, addr) (addr)
+#define DESC_FLAG_WORD(flags, addr) (flags)
+
+#endif
+
+/* Returns upper 4bits of 36bits physical address from
+ * flags word */
+#define DESC_UPPER_ADDR(flags) ((flags & 0xF))
+
+/* Returns lower 32bits of 36bits physical address */
+#define SPS_GET_LOWER_ADDR(addr) ((u32)(addr & 0xFFFFFFFF))
 
 /* SPS device handle indicating use of system memory */
 #define SPS_DEV_HANDLE_MEM       ((u32)0x7ffffffful)
@@ -56,8 +84,8 @@
 #define SPS_IOVEC_FLAG_LOCK  0x0400  /* pipe lock */
 #define SPS_IOVEC_FLAG_UNLOCK  0x0200  /* pipe unlock */
 #define SPS_IOVEC_FLAG_IMME 0x0100  /* immediate command descriptor */
-#define SPS_IOVEC_FLAG_NO_SUBMIT 0x0002  /* Do not submit descriptor to HW */
-#define SPS_IOVEC_FLAG_DEFAULT   0x0001  /* Use driver default */
+#define SPS_IOVEC_FLAG_NO_SUBMIT 0x0020  /* Do not submit descriptor to HW */
+#define SPS_IOVEC_FLAG_DEFAULT   0x0010  /* Use driver default */
 
 /* Maximum descriptor/iovec size */
 #define SPS_IOVEC_MAX_SIZE   (32 * 1024 - 1)  /* 32K-1 bytes due to HW limit */
@@ -77,6 +105,11 @@
 #define SPS_BAM_OPT_IRQ_WAKEUP      (1UL << 3)
 /* Ignore external block pipe reset */
 #define SPS_BAM_NO_EXT_P_RST        (1UL << 4)
+/* Don't enable local clock gating */
+#define SPS_BAM_NO_LOCAL_CLK_GATING (1UL << 5)
+/* Don't enable writeback cancel*/
+#define SPS_BAM_CANCEL_WB           (1UL << 6)
+
 
 /* BAM device management flags */
 
@@ -135,6 +168,8 @@ enum sps_option {
 	SPS_O_OUT_OF_DESC = 0x00000008,/* Out of descriptors */
 	SPS_O_ERROR     = 0x00000010,  /* Error */
 	SPS_O_EOT       = 0x00000020,  /* End-of-transfer */
+	SPS_O_RST_ERROR = 0x00000040,  /* Pipe reset unsucessful error */
+	SPS_O_HRESP_ERROR = 0x00000080,/* Errorneous Hresponse by AHB MASTER */
 
 	/* Options to enable hardware features */
 	SPS_O_STREAMING = 0x00010000,  /* Enable streaming mode (no EOT) */
@@ -142,8 +177,12 @@ enum sps_option {
 	SPS_O_IRQ_MTI   = 0x00020000,
 	/* NWD bit written with EOT for BAM2BAM producer pipe */
 	SPS_O_WRITE_NWD   = 0x00040000,
+	/* EOT set after pipe SW offset advanced */
+	SPS_O_LATE_EOT   = 0x00080000,
 
 	/* Options to enable software features */
+	/* Do not disable a pipe during disconnection */
+	SPS_O_NO_DISABLE      = 0x00800000,
 	/* Transfer operation should be polled */
 	SPS_O_POLL      = 0x01000000,
 	/* Disable queuing of transfer events for the connection end point */
@@ -196,6 +235,8 @@ enum sps_event {
 	SPS_EVENT_FLOWOFF,	/* Graceful halt (idle) */
 	SPS_EVENT_INACTIVE,	/* Inactivity timeout */
 	SPS_EVENT_ERROR,	/* Error */
+	SPS_EVENT_RST_ERROR,    /* Pipe Reset unsuccessful */
+	SPS_EVENT_HRESP_ERROR,  /* Errorneous Hresponse by AHB Master*/
 	SPS_EVENT_MAX,
 };
 
@@ -407,6 +448,11 @@ struct sps_bam_props {
 
 	u32 sec_config;
 	struct sps_bam_sec_config_props *p_sec_config_props;
+
+	/* Logging control */
+
+	bool constrained_logging;
+	u32 logging_number;
 };
 
 /**
@@ -420,7 +466,7 @@ struct sps_bam_props {
  */
 struct sps_mem_buffer {
 	void *base;
-	u32 phys_base;
+	phys_addr_t phys_base;
 	u32 size;
 	u32 min_size;
 };
@@ -637,7 +683,7 @@ struct sps_register_event {
  *
  */
 struct sps_transfer {
-	u32 iovec_phys;
+	phys_addr_t iovec_phys;
 	struct sps_iovec *iovec;
 	u32 iovec_count;
 	void *user;
@@ -929,7 +975,7 @@ int sps_register_event(struct sps_pipe *h, struct sps_register_event *reg);
  * @return 0 on success, negative value on error
  *
  */
-int sps_transfer_one(struct sps_pipe *h, u32 addr, u32 size,
+int sps_transfer_one(struct sps_pipe *h, phys_addr_t addr, u32 size,
 		     void *user, u32 flags);
 
 /**
@@ -1254,13 +1300,13 @@ int sps_get_unused_desc_num(struct sps_pipe *h, u32 *desc_num);
  *
  * @tb_sel - testbus selection
  *
- * @pre_level - prescreening level
+ * @desc_sel - selection of descriptors
  *
  * @return 0 on success, negative value on error
  *
  */
 int sps_get_bam_debug_info(u32 dev, u32 option, u32 para,
-		u32 tb_sel, u8 pre_level);
+		u32 tb_sel, u32 desc_sel);
 
 /**
  * Vote for or relinquish BAM DMA clock
@@ -1326,8 +1372,8 @@ static inline int sps_register_event(struct sps_pipe *h,
 	return -EPERM;
 }
 
-static inline int sps_transfer_one(struct sps_pipe *h, u32 addr, u32 size,
-		     void *user, u32 flags)
+static inline int sps_transfer_one(struct sps_pipe *h, phys_addr_t addr,
+					u32 size, void *user, u32 flags)
 {
 	return -EPERM;
 }
@@ -1429,7 +1475,7 @@ static inline int sps_get_unused_desc_num(struct sps_pipe *h, u32 *desc_num)
 }
 
 static inline int sps_get_bam_debug_info(u32 dev, u32 option, u32 para,
-		u32 tb_sel, u8 pre_level)
+		u32 tb_sel, u32 desc_sel)
 {
 	return -EPERM;
 }
