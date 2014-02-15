@@ -15,14 +15,13 @@
 #include <linux/ioport.h>
 #include <linux/platform_device.h>
 #include <linux/bootmem.h>
-#include <linux/gpio.h>
 #include <asm/mach-types.h>
-#include <asm/mach/mmc.h>
+#include <mach/mmc.h>
 #include <mach/msm_bus_board.h>
 #include <mach/board.h>
 #include <mach/gpio.h>
 #include <mach/gpiomux.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/socinfo.h>
 #include "devices.h"
 #include "board-8064.h"
 #include <mach/apq8064-gpio.h>
