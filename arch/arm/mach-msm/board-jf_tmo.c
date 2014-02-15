@@ -1612,8 +1612,8 @@ out:
 
 static struct android_usb_platform_data android_usb_pdata = {
 	.update_pid_and_serial_num = usb_diag_update_pid_and_serial_num,
-	.cdrom = false,
-	.nluns = 0,
+	/*.cdrom = false,
+	.nluns = 0, Commenting these out as struct android_usb_platform_data no longer has these fields*/
 };
 
 static struct platform_device android_usb_device = {
