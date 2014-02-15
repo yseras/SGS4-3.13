@@ -13,7 +13,12 @@
 #ifndef __ARCH_ARM_MACH_MSM_BOARD_APQ8064_H
 #define __ARCH_ARM_MACH_MSM_BOARD_APQ8064_H
 
-/* #include <linux/regulator/msm-gpio-regulator.h> */
+/* #include <linux/regulator/msm-gpio-regulator.h> 
+* Changed to krait-regulator.h until otherwise needed 
+* GPIO_REGULATOR_DEV_NAME renamed to KRAIT_REGULATOR_DRIVER_NAME
+* Change this back in board files if switching from krait-regulator to msm-gpio-regulator
+*/
+#include <linux/regulator/krait-regulator.h>
 #include <linux/mfd/pm8xxx/pm8921.h>
 #include <linux/mfd/pm8xxx/pm8821.h>
 #include <mach/msm_memtypes.h>
