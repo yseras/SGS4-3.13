@@ -228,4 +228,8 @@ static inline int msm_gpio_install_direct_irq(unsigned gpio, unsigned irq,
 }
 #endif
 
+#ifndef gpio_to_irq
+#define gpio_to_irq	__gpio_to_irq
+#endif
+
 #endif /* __ASM_ARCH_MSM_GPIO_H */
