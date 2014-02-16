@@ -45,6 +45,7 @@ obj-$(CONFIG_MACH_JF) += board-fusion3-battery.o
 obj-$(CONFIG_MACH_JF_TMO) += board-jf_tmo.o #board-jf_tmo-gpiomux.o
 
 obj-$(CONFIG_ARCH_MSM8960) += footswitch-8x60.o
+obj-$(CONFIG_CPU_FREQ_MSM) += cpufreq.o
 
 obj-$(CONFIG_MSM_SPM_V2) += spm-v2.o spm_devices.o
 obj-$(CONFIG_MSM_NATIVE_RESTART) += restart.o

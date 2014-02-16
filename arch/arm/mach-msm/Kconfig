@@ -5,6 +5,7 @@ menu "MSM SoC Type"
 config ARCH_APQ8064
 	bool "APQ8064"
 	select ARCH_MSM_KRAITMP
+	select ARCH_HAS_CPUFREQ
 	select GPIO_MSM_V2
 	select ARM_GIC
 	select CPU_V7
@@ -22,6 +23,9 @@ config ARCH_APQ8064
 	select MSM_SPM_V2
 	select MSM_L2_SPM
 	select MSM_PM8X60 if PM
+	select CPU_FREQ_MSM
+	select CPU_FREQ
+	select PM_DEVFREQ
 	select CPU_HAS_L2_PMU
 	select HOLES_IN_ZONE if SPARSEMEM
 	select CLEANCACHE
@@ -171,6 +175,27 @@ config MACH_QSD8X50A_ST1_5
 	  Support for the Qualcomm ST1.5.
 
 endmenu
+
+if CPU_FREQ_MSM
+
+config MSM_CPU_FREQ_SET_MIN_MAX
+	bool "Set Min/Max CPU frequencies."
+	default n
+	help
+	  Allow setting min and max CPU frequencies. Sysfs can be used
+	  to override these values.
+
+config MSM_CPU_FREQ_MAX
+	int "Max CPU Frequency"
+	depends on MSM_CPU_FREQ_SET_MIN_MAX
+	default 384000
+
+config MSM_CPU_FREQ_MIN
+	int "Min CPU Frequency"
+	depends on MSM_CPU_FREQ_SET_MIN_MAX
+	default 245760
+
+endif # CPU_FREQ_MSM
 
 config MSM_SMD_PKG3
 	bool
