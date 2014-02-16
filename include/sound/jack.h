@@ -42,8 +42,11 @@ enum snd_jack_types {
 	SND_JACK_MECHANICAL	= 0x0008, /* If detected separately */
 	SND_JACK_VIDEOOUT	= 0x0010,
 	SND_JACK_AVOUT		= SND_JACK_LINEOUT | SND_JACK_VIDEOOUT,
-	SND_JACK_LINEIN		= 0x0020,
-
+	/* */
+	SND_JACK_LINEIN		= 0x0000020,
+	SND_JACK_OC_HPHL	= 0x0000040,
+	SND_JACK_OC_HPHR	= 0x0000080,
+	SND_JACK_UNSUPPORTED	= 0x0000100,
 	/* Kept separate from switches to facilitate implementation */
 	SND_JACK_BTN_0		= 0x4000,
 	SND_JACK_BTN_1		= 0x2000,
@@ -51,6 +54,8 @@ enum snd_jack_types {
 	SND_JACK_BTN_3		= 0x0800,
 	SND_JACK_BTN_4		= 0x0400,
 	SND_JACK_BTN_5		= 0x0200,
+	SND_JACK_BTN_6		= 0x0100,
+	SND_JACK_BTN_7		= 0x0080,
 };
 
 /* Keep in sync with definitions above */

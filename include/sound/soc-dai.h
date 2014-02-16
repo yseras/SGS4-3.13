@@ -117,6 +117,10 @@ int snd_soc_dai_set_channel_map(struct snd_soc_dai *dai,
 	unsigned int tx_num, unsigned int *tx_slot,
 	unsigned int rx_num, unsigned int *rx_slot);
 
+int snd_soc_dai_get_channel_map(struct snd_soc_dai *dai,
+	unsigned int *tx_num, unsigned int *tx_slot,
+	unsigned int *rx_num, unsigned int *rx_slot);
+
 int snd_soc_dai_set_tristate(struct snd_soc_dai *dai, int tristate);
 
 /* Digital Audio Interface mute */
@@ -148,6 +152,9 @@ struct snd_soc_dai_ops {
 		unsigned int rx_num, unsigned int *rx_slot);
 	int (*set_tristate)(struct snd_soc_dai *dai, int tristate);
 
+	int (*get_channel_map)(struct snd_soc_dai *dai,
+		unsigned int *tx_num, unsigned int *tx_slot,
+		unsigned int *rx_num, unsigned int *rx_slot);
 	/*
 	 * DAI digital mute - optional.
 	 * Called by soc-core to minimise any pops.
