@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -28,12 +28,6 @@
 #define SITAR_CFILT2_SEL 0x1
 #define SITAR_CFILT3_SEL 0x2
 
-#define WCD9XXX_LDOH_1P95_V 0x0
-#define WCD9XXX_LDOH_2P35_V 0x1
-#define WCD9XXX_LDOH_2P75_V 0x2
-#define WCD9XXX_LDOH_2P85_V 0x3
-#define WCD9XXX_LDOH_3P0_V 0x3
-
 #define TABLA_LDOH_1P95_V 0x0
 #define TABLA_LDOH_2P35_V 0x1
 #define TABLA_LDOH_2P75_V 0x2
@@ -42,6 +36,16 @@
 #define TABLA_CFILT1_SEL 0x0
 #define TABLA_CFILT2_SEL 0x1
 #define TABLA_CFILT3_SEL 0x2
+
+#define TAIKO_CFILT1_SEL 0x0
+#define TAIKO_CFILT2_SEL 0x1
+#define TAIKO_CFILT3_SEL 0x2
+
+#define TAIKO_LDOH_1P95_V 0x0
+#define TAIKO_LDOH_2P35_V 0x1
+#define TAIKO_LDOH_2P75_V 0x2
+#define TAIKO_LDOH_2P85_V 0x3
+
 
 #define MAX_AMIC_CHANNEL 7
 
@@ -68,21 +72,6 @@
 #define TABLA_DCYCLE_3583 0xD
 #define TABLA_DCYCLE_3839 0xE
 #define TABLA_DCYCLE_4095 0xF
-
-#define WCD9XXX_MCLK_CLK_12P288MHZ 12288000
-#define WCD9XXX_MCLK_CLK_9P6HZ 9600000
-
-/* Only valid for 9.6 MHz mclk */
-#define WCD9XXX_DMIC_SAMPLE_RATE_2P4MHZ 2400000
-#define WCD9XXX_DMIC_SAMPLE_RATE_3P2MHZ 3200000
-#define WCD9XXX_DMIC_SAMPLE_RATE_4P8MHZ 4800000
-
-/* Only valid for 12.288 MHz mclk */
-#define WCD9XXX_DMIC_SAMPLE_RATE_3P072MHZ 3072000
-#define WCD9XXX_DMIC_SAMPLE_RATE_4P096MHZ 4096000
-#define WCD9XXX_DMIC_SAMPLE_RATE_6P144MHZ 6144000
-
-#define WCD9XXX_DMIC_SAMPLE_RATE_UNDEFINED 0
 
 struct wcd9xxx_amic {
 	/*legacy mode, txfe_enable and txfe_buff take 7 input
@@ -126,7 +115,6 @@ struct wcd9xxx_micbias_setting {
 	u8 bias2_cap_mode;
 	u8 bias3_cap_mode;
 	u8 bias4_cap_mode;
-	bool bias2_is_headset_only;
 };
 
 struct wcd9xxx_ocp_setting {
@@ -137,7 +125,7 @@ struct wcd9xxx_ocp_setting {
 	unsigned int	hph_ocp_limit:3; /* Headphone OCP current limit */
 };
 
-#define WCD9XXX_MAX_REGULATOR	8
+#define MAX_REGULATOR	7
 /*
  *      format : TABLA_<POWER_SUPPLY_PIN_NAME>_CUR_MAX
  *
@@ -152,14 +140,11 @@ struct wcd9xxx_ocp_setting {
 #define  WCD9XXX_VDDD_CDC_D_CUR_MAX       5000
 #define  WCD9XXX_VDDD_CDC_A_CUR_MAX       5000
 
-#define WCD9XXX_VDD_SPKDRV_NAME "cdc-vdd-spkdrv"
-
 struct wcd9xxx_regulator {
 	const char *name;
 	int min_uV;
 	int max_uV;
 	int optimum_uA;
-	bool ondemand;
 	struct regulator *regulator;
 };
 
@@ -172,9 +157,7 @@ struct wcd9xxx_pdata {
 	struct slim_device slimbus_slave_device;
 	struct wcd9xxx_micbias_setting micbias;
 	struct wcd9xxx_ocp_setting ocp;
-	struct wcd9xxx_regulator regulator[WCD9XXX_MAX_REGULATOR];
-	u32 mclk_rate;
-	u32 dmic_sample_rate;
+	struct wcd9xxx_regulator regulator[MAX_REGULATOR];
 };
 
 #endif
