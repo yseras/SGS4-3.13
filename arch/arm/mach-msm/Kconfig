@@ -129,6 +129,7 @@ menu "Qualcomm MSM Board Type"
 config MACH_JF
 	depends on ARCH_APQ8064
 	default n
+	select SND_SOC_WCD9310
 	bool "APQ8064 Samsung JF"
 	help
 	  This is JF device of Samsung.
@@ -137,6 +138,7 @@ config MACH_JF
 config MACH_JF_TMO
 	depends on ARCH_APQ8064
 	default n
+	select SND_SOC_WCD9310
 	bool "APQ8064 Samsung JF_TMO"
 	help
 	  Support for the Samsung JF device.
