@@ -197,4 +197,6 @@ static inline struct usb_phy *otg_ulpi_create(struct usb_phy_io_ops *ops,
 extern struct usb_phy_io_ops ulpi_viewport_access_ops;
 #endif
 
+#define ULPI_INT_DP				(1 << 7)
+
 #endif /* __LINUX_USB_ULPI_H */
