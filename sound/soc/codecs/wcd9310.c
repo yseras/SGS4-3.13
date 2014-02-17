@@ -621,9 +621,9 @@ static int tabla_get_iir_enable_audio_mixer(
 					struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
-	int iir_idx = ((struct soc_multi_mixer_control *)
+	int iir_idx = ((struct soc_mixer_control *)
 					kcontrol->private_value)->reg;
-	int band_idx = ((struct soc_multi_mixer_control *)
+	int band_idx = ((struct soc_mixer_control *)
 					kcontrol->private_value)->shift;
 
 	ucontrol->value.integer.value[0] =
