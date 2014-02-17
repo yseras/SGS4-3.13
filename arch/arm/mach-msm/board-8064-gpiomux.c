@@ -1330,7 +1330,7 @@ void __init apq8064_init_gpiomux(void)
 					ARRAY_SIZE(mdm_configs));
 	}
 
-	/*if (machine_is_apq8064_mtp()) {
+	if (machine_is_apq8064_mtp()) {
 		if (SOCINFO_VERSION_MINOR(platform_version) == 1) {
 			msm_gpiomux_install(cyts_gpio_alt_config,
 					ARRAY_SIZE(cyts_gpio_alt_config));
@@ -1338,7 +1338,7 @@ void __init apq8064_init_gpiomux(void)
 			msm_gpiomux_install(cyts_gpio_configs,
 					ARRAY_SIZE(cyts_gpio_configs));
 		}
-	}*/
+	}
 
 #ifdef CONFIG_USB_EHCI_MSM_HSIC
 	if (machine_is_apq8064_mtp())
