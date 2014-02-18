@@ -384,6 +384,12 @@ config SND_SOC_UDA1380
 config SND_SOC_WCD9310
 	tristate
 
+config SND_SOC_ES325
+	tristate
+
+config SND_SOC_ES325_SLIM
+	tristate
+
 config SND_SOC_WL1273
 	tristate
 
@@ -548,6 +554,9 @@ config SND_SOC_MAX9877
 	tristate
 
 config SND_SOC_MC13783
+	tristate
+
+config SND_SOC_MSM_STUB
 	tristate
 
 config SND_SOC_ML26124
