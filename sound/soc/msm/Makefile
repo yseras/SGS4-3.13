@@ -1,5 +1,4 @@
 # MSM CPU/CODEC DAI Support
-EXTRA_CFLAGS += -I$(PWD)/sound/soc/msm
 snd-soc-msm-dai-objs := msm-dai.o
 obj-$(CONFIG_SND_MSM_DAI_SOC) += snd-soc-msm-dai.o
 
