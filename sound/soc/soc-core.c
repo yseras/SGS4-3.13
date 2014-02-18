@@ -3908,7 +3908,7 @@ static inline char *fmt_multiple_name(struct device *dev,
  *
  * @dai: DAI to register
  */
-static int snd_soc_register_dai(struct device *dev,
+int snd_soc_register_dai(struct device *dev,
 		struct snd_soc_dai_driver *dai_drv)
 {
 	struct snd_soc_codec *codec;
