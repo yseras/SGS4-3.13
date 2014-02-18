@@ -1978,10 +1978,10 @@ static const char *fw_path[] = {
 };
 
 /* Don't inline this: 'struct kstat' is biggish */
-static noinline_for_stack long fw_file_size(struct path path)
+static noinline_for_stack long fw_file_size(struct file *file)
 {
 	struct kstat st;
-	if (vfs_getattr(&path, &st))
+	if (vfs_getattr(&file->f_path, &st))
 		return -1;
 	if (!S_ISREG(st.mode))
 		return -1;
