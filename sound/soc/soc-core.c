@@ -3961,7 +3961,7 @@ int snd_soc_register_dai(struct device *dev,
  *
  * @dai: DAI to unregister
  */
-static void snd_soc_unregister_dai(struct device *dev)
+void snd_soc_unregister_dai(struct device *dev)
 {
 	struct snd_soc_dai *dai;
 
