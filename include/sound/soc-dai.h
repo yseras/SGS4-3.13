@@ -95,6 +95,10 @@ struct snd_soc_dai_driver;
 struct snd_soc_dai;
 struct snd_ac97_bus_ops;
 
+/* Digital Audio Interface registration */
+int snd_soc_register_dai(struct device *dev,
+		struct snd_soc_dai_driver *dai_drv);
+
 /* Digital Audio Interface clocking API.*/
 int snd_soc_dai_set_sysclk(struct snd_soc_dai *dai, int clk_id,
 	unsigned int freq, int dir);
