@@ -212,8 +212,6 @@ struct ehci_hcd {			/* one per controller */
 	ktime_t			last_periodic_enable;
 	u32			command;
 
-	unsigned		log2_irq_thresh;
-
 	/* SILICON QUIRKS */
 	unsigned		no_selective_suspend:1;
 	unsigned		has_fsl_port_bug:1; /* FreeScale */
@@ -227,12 +225,18 @@ struct ehci_hcd {			/* one per controller */
 	unsigned		has_synopsys_hc_bug:1; /* Synopsys HC */
 	unsigned		frame_index_bug:1; /* MosChip (AKA NetMos) */
 	unsigned		need_oc_pp_cycle:1; /* MPC834X port power */
+	unsigned		imx28_write_fix:1; /* For Freescale i.MX28 */
+
+	/* MSM backwards compatibility stuff for our kernel. Do not remove these  */
+	unsigned		log2_irq_thresh;
+
 	unsigned		susp_sof_bug:1; /*Chip Idea HC*/
 	unsigned		resume_sof_bug:1;/*Chip Idea HC*/
 	unsigned		reset_sof_bug:1; /*Chip Idea HC*/
 	bool			disable_cerr;
-	u32				reset_delay;
-	unsigned		imx28_write_fix:1; /* For Freescale i.MX28 */
+	u32			reset_delay;
+
+	unsigned		pool_64_bit_align:1; /* for 64 bit alignment */
 
 	/* required for usb32 quirk */
 	#define OHCI_CTRL_HCFS          (3 << 6)
@@ -245,7 +249,6 @@ struct ehci_hcd {			/* one per controller */
 	unsigned		has_hostpc:1;
 	unsigned		has_tdi_phy_lpm:1;
 	unsigned		has_ppcd:1; /* support per-port change bits */
-	unsigned		pool_64_bit_align:1; /* for 64 bit alignment */
 	u8			sbrn;		/* packed release number */
 
 	/* irq statistics */
