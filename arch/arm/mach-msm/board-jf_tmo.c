@@ -4199,7 +4199,7 @@ static struct esxxx_platform_data esxxx_platform_data = {
 	.reset_gpio	= PM8921_GPIO_PM_TO_SYS(PMIC_GPIO_2MIC_RST),
 	.wakeup_gpio	= PM8921_GPIO_PM_TO_SYS(PMIC_GPIO_2MIC_WAKE),
 	.gpioa_gpio	= 2,
-	.es325_clk_cb	= es325_enable_ext_clk,
+	/*.es325_clk_cb	= es325_enable_ext_clk,*/
 	.gpiob_gpio	= 3
 };
 
