@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -75,26 +75,16 @@ struct msm_bus_scale_pdata {
  */
 
 #ifdef CONFIG_MSM_BUS_SCALING
+int __init msm_bus_fabric_init_driver(void);
 uint32_t msm_bus_scale_register_client(struct msm_bus_scale_pdata *pdata);
 int msm_bus_scale_client_update_request(uint32_t cl, unsigned int index);
 void msm_bus_scale_unregister_client(uint32_t cl);
-struct msm_bus_scale_pdata *msm_bus_cl_get_pdata(struct platform_device *pdev);
-void msm_bus_cl_clear_pdata(struct msm_bus_scale_pdata *pdata);
 /* AXI Port configuration APIs */
 int msm_bus_axi_porthalt(int master_port);
 int msm_bus_axi_portunhalt(int master_port);
 
 #else
-static inline struct msm_bus_scale_pdata
-*msm_bus_cl_get_pdata(struct platform_device *pdev)
-{
-	return NULL;
-}
-
-static inline void
-msm_bus_cl_clear_pdata(struct msm_bus_scale_pdata *pdata)
-{
-}
+static inline int __init msm_bus_fabric_init_driver(void) { return 0; }
 
 static inline uint32_t
 msm_bus_scale_register_client(struct msm_bus_scale_pdata *pdata)
@@ -124,4 +114,26 @@ static inline int msm_bus_axi_portunhalt(int master_port)
 }
 #endif
 
+#if defined(CONFIG_OF) && defined(CONFIG_MSM_BUS_SCALING)
+struct msm_bus_scale_pdata *msm_bus_pdata_from_node(
+		struct platform_device *pdev, struct device_node *of_node);
+struct msm_bus_scale_pdata *msm_bus_cl_get_pdata(struct platform_device *pdev);
+void msm_bus_cl_clear_pdata(struct msm_bus_scale_pdata *pdata);
+#else
+static inline struct msm_bus_scale_pdata
+*msm_bus_cl_get_pdata(struct platform_device *pdev)
+{
+	return NULL;
+}
+
+static inline struct msm_bus_scale_pdata *msm_bus_pdata_from_node(
+		struct platform_device *pdev, struct device_node *of_node)
+{
+	return NULL;
+}
+
+static inline void msm_bus_cl_clear_pdata(struct msm_bus_scale_pdata *pdata)
+{
+}
+#endif
 #endif /*_ARCH_ARM_MACH_MSM_BUS_H*/

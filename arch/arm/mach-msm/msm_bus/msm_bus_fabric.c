@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2014, Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -175,6 +175,15 @@ static int register_fabric_info(struct platform_device *pdev,
 			}
 		}
 
+		if (info->node_info->iface_clk_node) {
+			info->iface_clk.clk = clk_get_sys(info->node_info->
+				iface_clk_node, "iface_clk");
+			if (IS_ERR(info->iface_clk.clk)) {
+				MSM_BUS_ERR("ERR: Couldn't get clk %s\n",
+					info->node_info->iface_clk_node);
+			}
+		}
+
 		ret = info->node_info->gateway ?
 			msm_bus_fabric_add_fab(fabric, info) :
 			msm_bus_fabric_add_node(fabric, info);
@@ -187,6 +196,12 @@ static int register_fabric_info(struct platform_device *pdev,
 		if (fabric->fabdev.hw_algo.node_init == NULL)
 			continue;
 
+		if (info->iface_clk.clk) {
+			MSM_BUS_DBG("Enabled iface clock for node init: %d\n",
+				info->node_info->priv_id);
+			clk_prepare_enable(info->iface_clk.clk);
+		}
+
 		for (j = 0; j < NUM_CTX; j++)
 			clk_prepare_enable(fabric->info.nodeclk[j].clk);
 
@@ -198,6 +213,14 @@ static int register_fabric_info(struct platform_device *pdev,
 
 		for (j = 0; j < NUM_CTX; j++)
 			clk_disable_unprepare(fabric->info.nodeclk[j].clk);
+
+		if (info->iface_clk.clk) {
+			MSM_BUS_DBG("Disable iface_clk after node init: %d\n",
+				info->node_info->priv_id);
+			clk_disable_unprepare(info->iface_clk.clk);
+		}
+
+
 	}
 
 	MSM_BUS_DBG("Fabric: %d nmasters: %d nslaves: %d\n"
@@ -341,7 +364,7 @@ void msm_bus_fabric_update_bw(struct msm_bus_fabric_device *fabdev,
 {
 	struct msm_bus_fabric *fabric = to_msm_bus_fabric(fabdev);
 	void *sel_cdata;
-	int i;
+	long rounded_rate, cur_rate;
 
 	sel_cdata = fabric->cdata[ctx];
 
@@ -355,13 +378,48 @@ void msm_bus_fabric_update_bw(struct msm_bus_fabric_device *fabdev,
 		return;
 	}
 
-	for (i = 0; i < NUM_CTX; i++)
-		clk_prepare_enable(fabric->info.nodeclk[i].clk);
+	/* Enable clocks before accessing QoS registers */
+	if (fabric->info.nodeclk[DUAL_CTX].clk) {
+		if (fabric->info.nodeclk[DUAL_CTX].rate == 0) {
+			cur_rate = clk_get_rate(
+					fabric->info.nodeclk[DUAL_CTX].clk);
+			rounded_rate = clk_round_rate(
+					fabric->info.nodeclk[DUAL_CTX].clk,
+					cur_rate ? cur_rate : 1);
+		if (clk_set_rate(fabric->info.nodeclk[DUAL_CTX].clk,
+				rounded_rate))
+			MSM_BUS_ERR("Error: clk: en: Node: %d rate: %ld",
+				fabric->fabdev.id, rounded_rate);
+
+		clk_prepare_enable(fabric->info.nodeclk[DUAL_CTX].clk);
+		}
+	}
+
+	if (info->iface_clk.clk)
+		clk_prepare_enable(info->iface_clk.clk);
+
+	if (hop->iface_clk.clk)
+		clk_prepare_enable(hop->iface_clk.clk);
 
 	fabdev->hw_algo.update_bw(hop, info, fabric->pdata, sel_cdata,
 		master_tiers, add_bw);
-	for (i = 0; i < NUM_CTX; i++)
-		clk_disable_unprepare(fabric->info.nodeclk[i].clk);
+
+	/* Disable clocks after accessing QoS registers */
+	if (fabric->info.nodeclk[DUAL_CTX].clk &&
+			fabric->info.nodeclk[DUAL_CTX].rate == 0)
+		clk_disable_unprepare(fabric->info.nodeclk[DUAL_CTX].clk);
+
+	if (info->iface_clk.clk) {
+		MSM_BUS_DBG("Commented: Will disable clock for info: %d\n",
+			info->node_info->priv_id);
+		clk_disable_unprepare(info->iface_clk.clk);
+	}
+
+	if (hop->iface_clk.clk) {
+		MSM_BUS_DBG("Commented Will disable clock for hop: %d\n",
+			hop->node_info->priv_id);
+		clk_disable_unprepare(hop->iface_clk.clk);
+	}
 
 	fabric->arb_dirty = true;
 }
@@ -453,6 +511,50 @@ static int msm_bus_fabric_clk_commit(int enable, struct msm_bus_fabric *fabric)
 
 out:
 	return status;
+}
+
+static void msm_bus_fabric_config_master(
+	struct msm_bus_fabric_device *fabdev,
+	struct msm_bus_inode_info *info, uint64_t req_clk, uint64_t req_bw)
+{
+	struct msm_bus_fabric *fabric = to_msm_bus_fabric(fabdev);
+	long rounded_rate, cur_rate;
+
+	if (fabdev->hw_algo.config_master == NULL)
+		return;
+
+	/* Enable clocks before accessing QoS registers */
+	if (fabric->info.nodeclk[DUAL_CTX].clk) {
+		if (fabric->info.nodeclk[DUAL_CTX].rate == 0) {
+			cur_rate = clk_get_rate(
+					fabric->info.nodeclk[DUAL_CTX].clk);
+			rounded_rate = clk_round_rate(
+					fabric->info.nodeclk[DUAL_CTX].clk,
+					cur_rate ? cur_rate : 1);
+		if (clk_set_rate(fabric->info.nodeclk[DUAL_CTX].clk,
+				rounded_rate))
+			MSM_BUS_ERR("Error: clk: en: Node: %d rate: %ld",
+				fabric->fabdev.id, rounded_rate);
+
+		clk_prepare_enable(fabric->info.nodeclk[DUAL_CTX].clk);
+		}
+	}
+
+	if (info->iface_clk.clk)
+		clk_prepare_enable(info->iface_clk.clk);
+
+	fabdev->hw_algo.config_master(fabric->pdata, info, req_clk, req_bw);
+
+	/* Disable clocks after accessing QoS registers */
+	if (fabric->info.nodeclk[DUAL_CTX].clk &&
+			fabric->info.nodeclk[DUAL_CTX].rate == 0)
+		clk_disable_unprepare(fabric->info.nodeclk[DUAL_CTX].clk);
+
+	if (info->iface_clk.clk) {
+		MSM_BUS_DBG("Commented: Will disable clock for info: %d\n",
+			info->node_info->priv_id);
+		clk_disable_unprepare(info->iface_clk.clk);
+	}
 }
 
 /**
@@ -610,6 +712,7 @@ static struct msm_bus_fab_algorithm msm_bus_algo = {
 	.find_node = msm_bus_fabric_find_node,
 	.find_gw_node = msm_bus_fabric_find_gw_node,
 	.get_gw_list = msm_bus_fabric_get_gw_list,
+	.config_master = msm_bus_fabric_config_master,
 };
 
 static int msm_bus_fabric_hw_init(struct msm_bus_fabric_registration *pdata,
@@ -650,7 +753,6 @@ static int msm_bus_fabric_probe(struct platform_device *pdev)
 	INIT_LIST_HEAD(&fabric->gateways);
 	INIT_RADIX_TREE(&fabric->fab_tree, GFP_ATOMIC);
 	fabric->num_nodes = 0;
-	fabric->fabdev.id = pdev->id;
 	fabric->fabdev.visited = false;
 
 	fabric->info.node_info = kzalloc(sizeof(struct msm_bus_node_info),
@@ -660,18 +762,35 @@ static int msm_bus_fabric_probe(struct platform_device *pdev)
 		kfree(fabric);
 		return -ENOMEM;
 	}
-	fabric->info.node_info->priv_id = fabric->fabdev.id;
-	fabric->info.node_info->id = fabric->fabdev.id;
+
 	fabric->info.num_pnodes = -1;
 	fabric->info.link_info.clk[DUAL_CTX] = 0;
 	fabric->info.link_info.bw[DUAL_CTX] = 0;
 	fabric->info.link_info.clk[ACTIVE_CTX] = 0;
 	fabric->info.link_info.bw[ACTIVE_CTX] = 0;
 
-	fabric->fabdev.id = pdev->id;
-	pdata = (struct msm_bus_fabric_registration *)pdev->dev.platform_data;
+	/* If possible, get pdata from device-tree */
+	if (pdev->dev.of_node) {
+		pdata = msm_bus_of_get_fab_data(pdev);
+		if (IS_ERR(pdata) || ZERO_OR_NULL_PTR(pdata)) {
+			pr_err("Null platform data\n");
+			kfree(fabric->info.node_info);
+			kfree(fabric);
+			return PTR_ERR(pdata);
+		}
+		msm_bus_board_init(pdata);
+		fabric->fabdev.id = pdata->id;
+		msm_bus_of_get_nfab(pdev, pdata);
+	} else {
+		pdata = (struct msm_bus_fabric_registration *)pdev->
+			dev.platform_data;
+		fabric->fabdev.id = pdev->id;
+	}
+
 	fabric->fabdev.name = pdata->name;
 	fabric->fabdev.algo = &msm_bus_algo;
+	fabric->info.node_info->priv_id = fabric->fabdev.id;
+	fabric->info.node_info->id = fabric->fabdev.id;
 	ret = msm_bus_fabric_hw_init(pdata, &fabric->fabdev.hw_algo);
 	if (ret) {
 		MSM_BUS_ERR("Error initializing hardware for fabric: %d\n",
@@ -732,6 +851,9 @@ static int msm_bus_fabric_probe(struct platform_device *pdev)
 		}
 	}
 
+	if (msmbus_coresight_init(pdev))
+		pr_warn("Coresight support absent for bus: %d\n", pdata->id);
+
 	return ret;
 err:
 	kfree(fabric->info.node_info);
@@ -747,6 +869,7 @@ static int msm_bus_fabric_remove(struct platform_device *pdev)
 	int ret = 0;
 
 	fabdev = platform_get_drvdata(pdev);
+	msmbus_coresight_remove(pdev);
 	msm_bus_fabric_device_unregister(fabdev);
 	fabric = to_msm_bus_fabric(fabdev);
 	msm_bus_dbg_commit_data(fabric->fabdev.name, NULL, 0, 0, 0,
@@ -767,18 +890,32 @@ static int msm_bus_fabric_remove(struct platform_device *pdev)
 	return ret;
 }
 
+static struct of_device_id fabric_match[] = {
+	{.compatible = "msm-bus-fabric"},
+	{}
+};
+
 static struct platform_driver msm_bus_fabric_driver = {
 	.probe = msm_bus_fabric_probe,
 	.remove = msm_bus_fabric_remove,
 	.driver = {
 		.name = "msm_bus_fabric",
 		.owner = THIS_MODULE,
+		.of_match_table = fabric_match,
 	},
 };
 
-static int __init msm_bus_fabric_init_driver(void)
+int __init msm_bus_fabric_init_driver(void)
 {
+	static bool initialized;
+
+	if (initialized)
+		return 0;
+	else
+		initialized = true;
+
 	MSM_BUS_ERR("msm_bus_fabric_init_driver\n");
 	return platform_driver_register(&msm_bus_fabric_driver);
 }
-postcore_initcall(msm_bus_fabric_init_driver);
+EXPORT_SYMBOL(msm_bus_fabric_init_driver);
+subsys_initcall(msm_bus_fabric_init_driver);

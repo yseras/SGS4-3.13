@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -36,7 +36,8 @@
 	(((slv >= MSM_BUS_SLAVE_FIRST) && (slv <= MSM_BUS_SLAVE_LAST)) ? 1 : 0)
 
 #define INTERLEAVED_BW(fab_pdata, bw, ports) \
-	((fab_pdata->il_flag) ? msm_bus_div64((ports), (bw)) : (bw))
+	((fab_pdata->il_flag) ? ((bw < 0) \
+	? -msm_bus_div64((ports), (-bw)) : msm_bus_div64((ports), (bw))) : (bw))
 #define INTERLEAVED_VAL(fab_pdata, n) \
 	((fab_pdata->il_flag) ? (n) : 1)
 
@@ -71,6 +72,7 @@ struct msm_bus_node_info {
 	int hw_sel;
 	const char *slaveclk[NUM_CTX];
 	const char *memclk[NUM_CTX];
+	const char *iface_clk_node;
 	unsigned int buswidth;
 	unsigned int ws;
 	unsigned int mode;
@@ -80,6 +82,13 @@ struct msm_bus_node_info {
 	unsigned int prio_wr;
 	unsigned int prio1;
 	unsigned int prio0;
+	u64 th;
+	unsigned int mode_thresh;
+	bool dual_conf;
+	u64 bimc_bw;
+	u32 bimc_gp;
+	u32 bimc_thmp;
+	const char *name;
 };
 
 struct path_node {
@@ -117,6 +126,7 @@ struct msm_bus_inode_info {
 	int commit_index;
 	struct nodeclk nodeclk[NUM_CTX];
 	struct nodeclk memclk[NUM_CTX];
+	struct nodeclk iface_clk;
 	void *hw_data;
 };
 
@@ -144,6 +154,9 @@ struct msm_bus_hw_algorithm {
 		*fab_pdata, void *hw_data, void **cdata);
 	int (*port_unhalt)(uint32_t haltid, uint8_t mport);
 	int (*port_halt)(uint32_t haltid, uint8_t mport);
+	void (*config_master)(struct msm_bus_fabric_registration *fab_pdata,
+		struct msm_bus_inode_info *info,
+		uint64_t req_clk, uint64_t req_bw);
 };
 
 struct msm_bus_fabric_device {
@@ -176,10 +189,13 @@ struct msm_bus_fab_algorithm {
 	void (*update_bw)(struct msm_bus_fabric_device *fabdev, struct
 		msm_bus_inode_info * hop, struct msm_bus_inode_info *info,
 		int64_t add_bw, int *master_tiers, int ctx);
+	void (*config_master)(struct msm_bus_fabric_device *fabdev,
+		struct msm_bus_inode_info *info, uint64_t req_clk,
+		uint64_t req_bw);
 };
 
 struct msm_bus_board_algorithm {
-	const int board_nfab;
+	int board_nfab;
 	void (*assign_iids)(struct msm_bus_fabric_registration *fabreg,
 		int fabid);
 	int (*get_iid)(int id);
@@ -203,20 +219,42 @@ struct msm_bus_client {
 };
 
 uint64_t msm_bus_div64(unsigned int width, uint64_t bw);
-int msm_bus_remote_hw_commit(struct msm_bus_fabric_registration
-	*fab_pdata, void *hw_data, void **cdata);
 int msm_bus_fabric_device_register(struct msm_bus_fabric_device *fabric);
 void msm_bus_fabric_device_unregister(struct msm_bus_fabric_device *fabric);
 struct msm_bus_fabric_device *msm_bus_get_fabric_device(int fabid);
 int msm_bus_get_num_fab(void);
 
-void msm_bus_rpm_fill_cdata_buffer(int *curr, char *buf, const int max_size,
-	void *cdata, int nmasters, int nslaves, int ntslaves);
 
 int msm_bus_hw_fab_init(struct msm_bus_fabric_registration *pdata,
 	struct msm_bus_hw_algorithm *hw_algo);
+void msm_bus_board_init(struct msm_bus_fabric_registration *pdata);
+void msm_bus_board_set_nfab(struct msm_bus_fabric_registration *pdata,
+	int nfab);
+#if defined(CONFIG_MSM_RPM_SMD)
 int msm_bus_rpm_hw_init(struct msm_bus_fabric_registration *pdata,
 	struct msm_bus_hw_algorithm *hw_algo);
+int msm_bus_remote_hw_commit(struct msm_bus_fabric_registration
+	*fab_pdata, void *hw_data, void **cdata);
+void msm_bus_rpm_fill_cdata_buffer(int *curr, char *buf, const int max_size,
+	void *cdata, int nmasters, int nslaves, int ntslaves);
+#else
+static inline int msm_bus_rpm_hw_init(struct msm_bus_fabric_registration *pdata,
+	struct msm_bus_hw_algorithm *hw_algo)
+{
+	return 0;
+}
+static inline int msm_bus_remote_hw_commit(struct msm_bus_fabric_registration
+	*fab_pdata, void *hw_data, void **cdata)
+{
+	return 0;
+}
+static inline void msm_bus_rpm_fill_cdata_buffer(int *curr, char *buf,
+	const int max_size, void *cdata, int nmasters, int nslaves,
+	int ntslaves)
+{
+}
+#endif
+
 int msm_bus_noc_hw_init(struct msm_bus_fabric_registration *pdata,
 	struct msm_bus_hw_algorithm *hw_algo);
 int msm_bus_bimc_hw_init(struct msm_bus_fabric_registration *pdata,
@@ -235,6 +273,40 @@ static inline void msm_bus_dbg_commit_data(const char *fabname,
 	void *cdata, int nmasters, int nslaves, int ntslaves,
 	int op)
 {
+}
+#endif
+
+#ifdef CONFIG_CORESIGHT
+int msmbus_coresight_init(struct platform_device *pdev);
+void msmbus_coresight_remove(struct platform_device *pdev);
+#else
+static inline int msmbus_coresight_init(struct platform_device *pdev)
+{
+	return 0;
+}
+
+static inline void msmbus_coresight_remove(struct platform_device *pdev)
+{
+}
+#endif
+
+
+#ifdef CONFIG_OF
+void msm_bus_of_get_nfab(struct platform_device *pdev,
+		struct msm_bus_fabric_registration *pdata);
+struct msm_bus_fabric_registration
+	*msm_bus_of_get_fab_data(struct platform_device *pdev);
+#else
+static inline void msm_bus_of_get_nfab(struct platform_device *pdev,
+		struct msm_bus_fabric_registration *pdata)
+{
+	return;
+}
+
+static inline struct msm_bus_fabric_registration
+	*msm_bus_of_get_fab_data(struct platform_device *pdev)
+{
+	return NULL;
 }
 #endif
 
