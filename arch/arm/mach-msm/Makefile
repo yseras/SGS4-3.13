@@ -51,3 +51,5 @@ obj-$(CONFIG_CPU_FREQ_MSM) += cpufreq.o
 obj-$(CONFIG_MSM_BUS_SCALING) += msm_bus/
 obj-$(CONFIG_MSM_SPM_V2) += spm-v2.o spm_devices.o
 obj-$(CONFIG_MSM_NATIVE_RESTART) += restart.o
+
+obj-$(CONFIG_SND_SOC_QDSP6) += qdsp6v2/
