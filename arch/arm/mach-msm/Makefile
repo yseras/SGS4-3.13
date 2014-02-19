@@ -30,7 +30,9 @@ obj-$(CONFIG_ARCH_MSM_DT) += board-dt.o
 obj-$(CONFIG_MSM_GPIOMUX) += gpiomux.o
 obj-$(CONFIG_ARCH_QSD8X50) += gpiomux-8x50.o
 
-# APQ8064 support; everything below has been added in at the bottom to maintain line numbers for future patches
+# APQ8064/MSM8960 support from our Samsung sources begins here
+#
+
 #obj-$(CONFIG_ARCH_MSM_KRAIT) += krait-scm.o
 obj-$(CONFIG_PM) += pm-boot.o
 obj-$(CONFIG_CPU_V7) += idle-v7.o
@@ -52,5 +54,11 @@ obj-$(CONFIG_CPU_FREQ_MSM) += cpufreq.o
 obj-$(CONFIG_MSM_BUS_SCALING) += msm_bus/
 obj-$(CONFIG_MSM_SPM_V2) += spm-v2.o spm_devices.o
 obj-$(CONFIG_MSM_NATIVE_RESTART) += restart.o
+
+obj-$(CONFIG_MFD_MAX77693) += sec-switch.o
+
+ifdef CONFIG_SEC_THERMISTOR #TODO ADD CONFIG_SEC_THERMISTOR
+obj-$(CONFIG_SEC_THERMISTOR) += sec_thermistor.o fusion3-thermistor.o
+endif
 
 obj-$(CONFIG_SND_SOC_QDSP6) += qdsp6v2/
