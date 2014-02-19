@@ -35,20 +35,19 @@ obj-$(CONFIG_ARCH_QSD8X50) += gpiomux-8x50.o
 obj-$(CONFIG_PM) += pm-boot.o
 obj-$(CONFIG_CPU_V7) += idle-v7.o
 
-obj-$(CONFIG_ARCH_MSM_KRAIT) += acpuclock-krait.o msm-krait-l2-accessors.o
 obj-$(CONFIG_ARCH_APQ8064) += acpuclock.o acpuclock-8064.o
 obj-$(CONFIG_ARCH_APQ8064) += dma.o io.o
 obj-$(CONFIG_ARCH_APQ8064) += board-8064-gpiomux.o #board-8064.o #devices-8064.o board-8064-pmic.o board-8064-storage.o board-8064-camera.o board-8064-display.o board-8064-gpu.o
 
-
-obj-$(CONFIG_ARCH_MSM8960) += gpiomux-v2.o gpiomux.o
 obj-$(CONFIG_ARCH_APQ8064) += gpiomux-v2.o gpiomux.o
+obj-$(CONFIG_ARCH_MSM8960) += gpiomux-v2.o gpiomux.o
+obj-$(CONFIG_ARCH_MSM8960) += footswitch-8x60.o
+obj-$(CONFIG_ARCH_MSM_KRAIT) += acpuclock-krait.o msm-krait-l2-accessors.o
 
 obj-$(CONFIG_MACH_JF) += board-fusion3-battery.o
 obj-$(CONFIG_MACH_JF_TMO) += board-jf_tmo.o #board-jf_tmo-gpiomux.o
 
-obj-$(CONFIG_ARCH_MSM8960) += footswitch-8x60.o
 obj-$(CONFIG_CPU_FREQ_MSM) += cpufreq.o
-
+obj-$(CONFIG_MSM_BUS_SCALING) += msm_bus/
 obj-$(CONFIG_MSM_SPM_V2) += spm-v2.o spm_devices.o
 obj-$(CONFIG_MSM_NATIVE_RESTART) += restart.o

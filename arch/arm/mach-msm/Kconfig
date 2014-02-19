@@ -37,6 +37,7 @@ config ARCH_APQ8064
 	select MSM_IOMMU_GPU_SYNC
 	select MSM_CPU_PWRCTL
 	select MSM_SMD
+	select MSM_BUS_SCALING
 
 config ARCH_MSM7X00A
 	bool "MSM7x00A / MSM7x01A"
@@ -217,6 +218,10 @@ config MSM_SMD
 
 config MSM_NATIVE_RESTART
 	bool
+
+config MSM_BUS_SCALING
+	bool "Bus scaling driver"
+	default n
 
 config MSM_GPIOMUX
 	bool
