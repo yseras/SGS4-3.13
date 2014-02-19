@@ -115,6 +115,10 @@ bool early_boot_irqs_disabled __read_mostly;
 enum system_states system_state __read_mostly;
 EXPORT_SYMBOL(system_state);
 
+#ifdef CONFIG_SAMSUNG_LPM_MODE
+int poweroff_charging;
+#endif /*  CONFIG_SAMSUNG_LPM_MODE */
+
 /*
  * Boot command-line arguments
  */
