@@ -4880,6 +4880,7 @@ static void __init register_i2c_devices(void)
 
 static void enable_ddr3_regulator(void)
 {
+	int ret;
 	static struct regulator *ext_ddr3;
 
 	/* Use MPP7 output state as a flag for PCDDR3 presence. */
@@ -4888,7 +4889,10 @@ static void enable_ddr3_regulator(void)
 		if (IS_ERR(ext_ddr3) || ext_ddr3 == NULL)
 			pr_err("Could not get MPP7 regulator\n");
 		else
-			regulator_enable(ext_ddr3);
+			ret = regulator_enable(ext_ddr3);
+			if (ret) {
+				pr_err("Failed to enable ext_ddr3 regulator.\n");		
+			}
 	}
 }
 

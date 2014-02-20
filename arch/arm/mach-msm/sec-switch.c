@@ -100,7 +100,7 @@ static ssize_t midas_switch_store_vbus(struct device *dev,
 				       struct device_attribute *attr,
 				       const char *buf, size_t count)
 {
-	int disable, ret, usb_mode;
+	int disable, ret, ret2, usb_mode;
 	struct regulator *regulator;
 	/* struct s3c_udc *udc = platform_get_drvdata(&s3c_device_usbgadget); */
 
@@ -131,10 +131,18 @@ static ssize_t midas_switch_store_vbus(struct device *dev,
 		if (regulator_is_enabled(regulator))
 			regulator_force_disable(regulator);
 		if (!regulator_is_enabled(regulator))
-			regulator_enable(regulator);
+			ret2 = regulator_enable(regulator);
+			if (ret2) {
+				pr_err("Failed to enable sec-switch regulator.\n");
+				return ret2;				
+			}
 	} else {
 		if (!regulator_is_enabled(regulator))
-			regulator_enable(regulator);
+			ret2 = regulator_enable(regulator);
+			if (ret2) {
+				pr_err("Failed to enable sec-switch regulator.\n");
+				return ret2;				
+			}
 	}
 	regulator_put(regulator);
 
@@ -475,6 +483,7 @@ int max77693_muic_host_notify_cb(int enable)
 
 int max77693_muic_set_safeout(int path)
 {
+	int ret2;
 	struct regulator *regulator;
 
 	pr_info("MUIC safeout path=%d\n", path);
@@ -491,7 +500,11 @@ int max77693_muic_set_safeout(int path)
 		if (IS_ERR(regulator))
 			return -ENODEV;
 		if (!regulator_is_enabled(regulator))
-			regulator_enable(regulator);
+			ret2 = regulator_enable(regulator);
+			if (ret2) {
+				pr_err("Failed to enable sec-switch regulator.\n");
+				return ret2;				
+			}
 		regulator_put(regulator);
 	} else {
 		/* AP_USB_MODE || AUDIO_MODE */
@@ -499,7 +512,11 @@ int max77693_muic_set_safeout(int path)
 		if (IS_ERR(regulator))
 			return -ENODEV;
 		if (!regulator_is_enabled(regulator))
-			regulator_enable(regulator);
+			ret2 = regulator_enable(regulator);
+			if (ret2) {
+				pr_err("Failed to enable sec-switch regulator.\n");
+				return ret2;				
+			}
 		regulator_put(regulator);
 
 		regulator = regulator_get(NULL, "safeout2");

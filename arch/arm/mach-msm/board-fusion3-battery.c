@@ -319,6 +319,7 @@ static int sec_bat_get_cable_from_extended_cable_type(
 static bool sec_bat_check_cable_result_callback(
 				int cable_type)
 {
+	int ret;
 	struct regulator *l29;
 	current_cable_type = cable_type;
 
@@ -339,7 +340,10 @@ static bool sec_bat_check_cable_result_callback(
 			l29 = regulator_get(NULL, "8921_l29");
 			if(l29 > 0)
 			{
-				regulator_enable(l29);
+				ret = regulator_enable(l29);
+				if (ret) {
+					pr_err("Failed to enable l29 regulator.\n");			
+				}
 			}
 		}
 	}
