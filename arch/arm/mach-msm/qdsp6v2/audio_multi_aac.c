@@ -16,7 +16,7 @@
  */
 
 #include <linux/msm_audio_aac.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/socinfo.h>
 #include "audio_utils_aio.h"
 
 #define AUDIO_AAC_DUAL_MONO_INVALID -1

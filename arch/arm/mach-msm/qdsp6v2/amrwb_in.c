@@ -14,7 +14,7 @@
 #include <linux/fs.h>
 #include <linux/module.h>
 #include <linux/miscdevice.h>
-#include <linux/msm_audio_amrwb.h>
+#include <uapi/linux/msm_audio_amrwb.h>
 #include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>

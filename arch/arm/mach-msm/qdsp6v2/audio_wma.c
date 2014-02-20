@@ -16,7 +16,7 @@
  */
 
 #include <linux/types.h>
-#include <linux/msm_audio_wma.h>
+#include <uapi/linux/msm_audio_wma.h>
 #include "audio_utils_aio.h"
 
 #ifdef CONFIG_DEBUG_FS

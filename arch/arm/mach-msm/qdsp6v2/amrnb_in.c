@@ -19,7 +19,7 @@
 #include <linux/slab.h>
 #include <linux/wait.h>
 #include <linux/dma-mapping.h>
-#include <linux/msm_audio_amrnb.h>
+#include <uapi/linux/msm_audio_amrnb.h>
 #include <asm/atomic.h>
 #include <asm/ioctls.h>
 #include "audio_utils.h"

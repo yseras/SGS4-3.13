@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  */
-#include <linux/msm_audio_amrwbplus.h>
+#include <uapi/linux/msm_audio_amrwbplus.h>
 #include "audio_utils_aio.h"
 
 #ifdef CONFIG_DEBUG_FS
