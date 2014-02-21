@@ -51,6 +51,10 @@
 #include <mach/msm_bus.h>
 #include <mach/rpm-regulator.h>
 
+#ifdef CONFIG_USB_HOST_NOTIFY
+#include <linux/host_notify.h>
+#endif
+
 #define MSM_USB_BASE	(motg->regs)
 #define DRIVER_NAME	"msm_otg"
 
@@ -1509,6 +1513,13 @@ static void msm_otg_start_host(struct usb_otg *otg, int on)
 	if (!otg->host)
 		return;
 
+#ifdef CONFIG_USB_HOST_NOTIFY
+	if (on == 1) {
+		motg->ndev.mode = NOTIFY_HOST_MODE;
+	} else if (on == 0) {
+		motg->ndev.mode = NOTIFY_NONE_MODE;
+	}
+#endif
 	hcd = bus_to_hcd(otg->host);
 
 	if (on) {
@@ -1625,9 +1636,16 @@ static void msm_hsusb_vbus_power(struct msm_otg *motg, bool on)
 		return;
 
 	if (motg->pdata->vbus_power) {
-		ret = motg->pdata->vbus_power(on);
-		if (!ret)
-			vbus_is_on = on;
+		if (!motg->smartdock) {
+			ret = motg->pdata->vbus_power(on);
+			if (!ret)
+				vbus_is_on = on;
+#ifdef CONFIG_USB_HOST_NOTIFY
+			else
+				schedule_delayed_work(&motg->late_power_work,
+							(1000 * HZ/1000));
+#endif
+		}
 		return;
 	}
 
@@ -1731,6 +1749,12 @@ static void msm_otg_start_peripheral(struct usb_otg *otg, int on)
 	if (!otg->gadget)
 		return;
 
+#ifdef CONFIG_USB_HOST_NOTIFY
+	if (on == 1)
+		motg->ndev.mode = NOTIFY_PERIPHERAL_MODE;
+	else if (on == 0)
+		motg->ndev.mode = NOTIFY_NONE_MODE;
+#endif
 	if (on) {
 		dev_dbg(otg->phy->dev, "gadget on\n");
 		/*
@@ -3447,6 +3471,10 @@ void msm_otg_set_vbus_state(int online)
 	if (online) {
 		pr_debug("PMIC: BSV set\n");
 		set_bit(B_SESS_VLD, &motg->inputs);
+#ifdef CONFIG_CHARGER_MAX77693
+		motg->chg_state = USB_CHG_STATE_DETECTED;
+		motg->chg_type = USB_SDP_CHARGER;
+#endif
 	} else {
 		pr_debug("PMIC: BSV clear\n");
 		clear_bit(B_SESS_VLD, &motg->inputs);
@@ -3480,6 +3508,52 @@ void msm_otg_set_vbus_state(int online)
 	else
 		queue_work(system_nrt_wq, &motg->sm_work);
 }
+
+void msm_otg_set_id_state(int online)
+{
+	struct msm_otg *motg = the_msm_otg;
+
+	if (online) {
+		dev_info(motg->phy.dev, "MUIC: ID set\n");
+		set_bit(ID, &motg->inputs);
+		host_state_notify(&motg->ndev, NOTIFY_HOST_REMOVE);
+	} else {
+		dev_info(motg->phy.dev, "MUIC: ID clear\n");
+		clear_bit(ID, &motg->inputs);
+		set_bit(A_BUS_REQ, &motg->inputs);
+		host_state_notify(&motg->ndev, NOTIFY_HOST_ADD);
+	}
+
+	if (atomic_read(&motg->pm_suspended))
+		motg->sm_work_pending = true;
+	else
+		queue_work(system_nrt_wq, &motg->sm_work);
+}
+EXPORT_SYMBOL_GPL(msm_otg_set_id_state);
+
+void msm_otg_set_smartdock_state(bool online)
+{
+	struct msm_otg *motg = the_msm_otg;
+
+	if (online) {
+		dev_info(motg->phy.dev, "SMARTDOCK : ID set\n");
+		motg->smartdock = false;
+		set_bit(ID, &motg->inputs);
+	} else {
+		dev_info(motg->phy.dev, "SMARTDOCK : ID clear\n");
+		motg->smartdock = true;
+		clear_bit(ID, &motg->inputs);
+	}
+
+	if (test_bit(B_SESS_VLD, &motg->inputs))
+		clear_bit(B_SESS_VLD, &motg->inputs);
+
+	if (atomic_read(&motg->pm_suspended))
+		motg->sm_work_pending = true;
+	else
+		queue_work(system_nrt_wq, &motg->sm_work);
+}
+EXPORT_SYMBOL_GPL(msm_otg_set_smartdock_state);
 
 static void msm_pmic_id_status_w(struct work_struct *w)
 {
@@ -4700,6 +4774,9 @@ static int __init msm_otg_probe(struct platform_device *pdev)
 	phy->init = msm_otg_reset;
 	phy->set_power = msm_otg_set_power;
 	phy->set_suspend = msm_otg_set_suspend;
+#ifdef CONFIG_USB_HOST_NOTIFY
+	phy->set_suspend = NULL;
+#endif
 
 	phy->io_ops = &msm_otg_io_ops;
 
@@ -4912,6 +4989,12 @@ static int msm_otg_remove(struct platform_device *pdev)
 	if (psy)
 		power_supply_unregister(psy);
 	msm_otg_mhl_register_callback(motg, NULL);
+
+#ifdef CONFIG_USB_HOST_NOTIFY
+	host_notify_dev_unregister(&motg->ndev);
+	cancel_work_sync(&motg->notify_work);
+	cancel_delayed_work_sync(&motg->late_power_work);
+#endif
 	msm_otg_debugfs_cleanup();
 	cancel_delayed_work_sync(&motg->chg_work);
 	cancel_delayed_work_sync(&motg->pmic_id_status_work);

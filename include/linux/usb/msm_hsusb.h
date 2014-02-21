@@ -27,6 +27,10 @@
 #include <linux/hrtimer.h>
 #include <linux/power_supply.h>
 #include <linux/cdev.h>
+#ifdef CONFIG_USB_HOST_NOTIFY
+#include <linux/host_notify.h>
+#endif
+
 /*
  * The following are bit fields describing the usb_request.udc_priv word.
  * These bit fields are set by function drivers that wish to queue
@@ -264,6 +268,11 @@ struct msm_otg_platform_data {
 	bool dp_manual_pullup;
 	bool enable_sec_phy;
 	struct msm_bus_scale_pdata *bus_scale_table;
+#ifdef CONFIG_USB_HOST_NOTIFY
+	unsigned int otg_power_gpio;
+	int otg_power_irq;
+#endif
+
 	const char *mhl_dev_name;
 	int log2_itc;
 	bool l1_supported;
@@ -413,6 +422,14 @@ struct msm_otg {
 	unsigned mA_port;
 	struct timer_list id_timer;
 	unsigned long caps;
+#ifdef CONFIG_USB_HOST_NOTIFY
+	struct host_notify_dev ndev;
+	struct work_struct notify_work;
+	unsigned notify_state;
+	struct delayed_work late_power_work;
+	struct work_struct otg_power_work;
+#endif
+	bool smartdock;
 	struct msm_xo_voter *xo_handle;
 	uint32_t bus_perf_client;
 	bool mhl_enabled;
