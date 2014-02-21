@@ -342,7 +342,8 @@ static bool sec_bat_check_cable_result_callback(
 			{
 				ret = regulator_enable(l29);
 				if (ret) {
-					pr_err("Failed to enable l29 regulator.\n");			
+					pr_err("Failed to enable l29 regulator.\n");
+					return false;		
 				}
 			}
 		}

@@ -4891,7 +4891,8 @@ static void enable_ddr3_regulator(void)
 		else
 			ret = regulator_enable(ext_ddr3);
 			if (ret) {
-				pr_err("Failed to enable ext_ddr3 regulator.\n");		
+				pr_err("Failed to enable ext_ddr3 regulator.\n");
+				return;		
 			}
 	}
 }
