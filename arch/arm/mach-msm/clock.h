@@ -66,9 +66,11 @@ int msm_clock_init(struct clock_init_data *data);
 int find_vdd_level(struct clk *clk, unsigned long rate);
 
 #ifdef CONFIG_DEBUG_FS
+int clock_debug_init(void);
 int clock_debug_register(struct clk_lookup *t, size_t s);
 void clock_debug_print_enabled(void);
 #else
+static inline int clock_debug_init(void) { return 0; }
 static inline int clock_debug_register(struct clk_lookup *t, size_t s)
 {
 	return 0;
