@@ -1,5 +1,4 @@
 obj-y += timer.o
-#obj-y += clock.o
 
 obj-$(CONFIG_MSM_VIC) += irq-vic.o
 
