@@ -3440,7 +3440,7 @@ static irqreturn_t msm_otg_irq(int irq, void *data)
 	return ret;
 }
 
-static void msm_otg_set_vbus_state(int online)
+void msm_otg_set_vbus_state(int online)
 {
 	struct msm_otg *motg = the_msm_otg;
 
