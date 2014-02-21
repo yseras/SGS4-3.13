@@ -136,6 +136,53 @@ static int vdd_val[VDD_TYPE_MAX][VDD_VAL_MAX] = {
 		},
 };
 
+#ifdef CONFIG_USB_HOST_NOTIFY
+/*static void msm_otg_set_id_state_pbatest(int id, struct host_notify_dev *ndev)
+{
+	struct msm_otg *motg = container_of(ndev, struct msm_otg, ndev);
+
+	dev_info(motg->phy.dev, "%s, !id=%d\n", __func__, !id);
+
+	if (atomic_read(&motg->in_lpm))
+		pm_runtime_resume(motg->phy.dev);
+	if (!id)
+		set_bit(ID, &motg->inputs);
+	else
+		clear_bit(ID, &motg->inputs);
+
+	queue_work(system_nrt_wq, &motg->sm_work);
+}*/
+
+enum usb_notify_state {
+	ACC_POWER_ON = 0,
+	ACC_POWER_OFF,
+	ACC_POWER_OVER_CURRENT,
+};
+
+/*static void msm_otg_notify_work(struct work_struct *w)
+{
+	struct msm_otg *motg = container_of(w, struct msm_otg, notify_work);
+
+	if (motg->smartdock)
+		return;
+
+	switch (motg->notify_state) {
+	case ACC_POWER_ON:
+		dev_info(motg->phy.dev, "Acc power on detect\n");
+		break;
+	case ACC_POWER_OFF:
+		dev_info(motg->phy.dev, "Acc power off detect\n");
+		break;
+	case ACC_POWER_OVER_CURRENT:
+		host_state_notify(&motg->ndev, NOTIFY_HOST_OVERCURRENT);
+		dev_err(motg->phy.dev, "OTG overcurrent!!!!!!\n");
+		break;
+	default:
+		break;
+	}
+}*/
+#endif
+
 static int msm_hsusb_ldo_init(struct msm_otg *motg, int init)
 {
 	int rc = 0;
@@ -1678,6 +1725,47 @@ static void msm_hsusb_vbus_power(struct msm_otg *motg, bool on)
 		vbus_is_on = false;
 	}
 }
+
+#ifdef CONFIG_USB_HOST_NOTIFY
+int msm_otg_power_cb(int active)
+{
+	struct msm_otg *motg = the_msm_otg;
+
+	int otg_power = active;
+
+	if (!motg) {
+		pr_err("%s: motg is null.\n", __func__);
+		return -1;
+	}
+
+	dev_info(motg->phy.dev, "%s, ID=%d, otg_power=%d, ndev.mode=%d\n",
+		__func__, test_bit(ID, &motg->inputs),
+		otg_power, motg->ndev.mode);
+
+	if (!test_bit(ID, &motg->inputs)) {
+		if (otg_power) {
+			motg->ndev.booster = NOTIFY_POWER_ON;
+			motg->notify_state = ACC_POWER_ON;
+			schedule_work(&motg->notify_work);
+		} else {
+			motg->ndev.booster = NOTIFY_POWER_OFF;
+			motg->notify_state = ACC_POWER_OVER_CURRENT;
+			schedule_work(&motg->notify_work);
+		}
+	} else {
+		if (!otg_power) {
+			if (motg->ndev.mode == NOTIFY_HOST_MODE ||
+				motg->notify_state == ACC_POWER_ON) {
+				motg->ndev.booster = NOTIFY_POWER_OFF;
+				motg->notify_state = ACC_POWER_OFF;
+				schedule_work(&motg->notify_work);
+			}
+		}
+	}
+	return motg->ndev.mode;
+}
+EXPORT_SYMBOL_GPL(msm_otg_power_cb);
+#endif
 
 static int msm_otg_set_host(struct usb_otg *otg, struct usb_bus *host)
 {
