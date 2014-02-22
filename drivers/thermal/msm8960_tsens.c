@@ -216,7 +216,7 @@ static void tsens8960_get_temp(int sensor_num, unsigned long *temp)
 	if (tmdev->hw_type == APQ_8064 &&
 			sensor_num >= TSENS_8064_SEQ_SENSORS)
 		offset = TSENS_8064_S4_S5_OFFSET;
-	code = readl_relaxed(sensor_addr + offset +
+	code = readl_relaxed(&sensor_addr + offset +
 			(sensor_num << TSENS_STATUS_ADDR_OFFSET));
 	*temp = tsens_tz_code_to_degC(code, sensor_num);
 }
@@ -666,7 +666,7 @@ static void tsens_scheduler_fn(struct work_struct *work)
 		if (i == TSENS_8064_SEQ_SENSORS)
 			sensor_addr += TSENS_8064_S4_S5_OFFSET;
 		if (sensor & TSENS_MASK1) {
-			code = readl_relaxed(sensor_addr);
+			code = readl_relaxed(&sensor_addr);
 			upper_th_x = code >= threshold;
 			lower_th_x = code <= threshold_low;
 			if (upper_th_x)
@@ -676,7 +676,7 @@ static void tsens_scheduler_fn(struct work_struct *work)
 			if (upper_th_x || lower_th_x) {
 				/* Notify user space */
 				schedule_work(&tm->sensor[i].work);
-				adc_code = readl_relaxed(sensor_addr);
+				adc_code = readl_relaxed(&sensor_addr);
 				pr_debug("Trigger (%d degrees) for sensor %d\n",
 					tsens_tz_code_to_degC(adc_code, i), i);
 			}
