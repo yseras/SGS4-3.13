@@ -752,7 +752,7 @@ err:
  * Upon return, clock APIs may be used to control clocks registered using this
  * function.
  */
-int msm_clock_register(struct clk_lookup *table, size_t size)
+int __init msm_clock_register(struct clk_lookup *table, size_t size)
 {
 	int n = 0;
 
@@ -815,7 +815,7 @@ static struct clk *of_clk_src_get(struct of_phandle_args *clkspec,
  * Upon return, clock APIs may be used to control clocks registered using this
  * function.
  */
-int of_msm_clock_register(struct device_node *np, struct clk_lookup *table,
+int __init of_msm_clock_register(struct device_node *np, struct clk_lookup *table,
 				size_t size)
 {
 	int ret = 0;
