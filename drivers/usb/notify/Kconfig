@@ -9,3 +9,4 @@ config USB_HOST_NOTIFY
 	  Android framework needs uevents for usb host operation.
 	  Host notify Driver serves uevent format
 	  that is used by usb host or otg.
+
