@@ -633,11 +633,17 @@ config ARCH_PXA
 
 config ARCH_MSM
 	bool "Qualcomm MSM"
+	select ARCH_HAS_CPUFREQ
 	select ARCH_REQUIRE_GPIOLIB
-	select CLKSRC_OF if OF
+	select CLKDEV_LOOKUP
 	select GENERIC_CLOCKEVENTS
+	select GENERIC_GPIO
+	select GENERIC_TIME
+	select GENERIC_ALLOCATOR
 	select HAVE_CLK
+	select HAVE_SCHED_CLOCK
 	select HAVE_CLK_PREPARE
+	select USE_OF
 	help
 	  Support for Qualcomm MSM/QSD based systems.  This runs on the
 	  apps processor of the MSM/QSD and depends on a shared memory
