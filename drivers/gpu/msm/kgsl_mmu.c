@@ -624,7 +624,8 @@ kgsl_mmu_get_gpuaddr(struct kgsl_pagetable *pagetable,
 		}
 	}
 	if (pool) {
-		memdesc->gpuaddr = gen_pool_alloc(pool, size);
+		memdesc->gpuaddr = gen_pool_alloc_aligned(pool, size,
+							  page_align);
 		if (memdesc->gpuaddr == 0) {
 			KGSL_CORE_ERR("gen_pool_alloc(%d) failed, pool: %s\n",
 					size,
