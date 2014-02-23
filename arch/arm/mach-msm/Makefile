@@ -52,6 +52,8 @@ obj-$(CONFIG_MACH_JF_TMO) += board-jf_tmo.o board-jf_tmo-gpiomux.o
 obj-$(CONFIG_CPU_FREQ_MSM) += cpufreq.o
 obj-$(CONFIG_MSM_BUS_SCALING) += msm_bus/
 obj-$(CONFIG_MSM_SPM_V2) += spm-v2.o spm_devices.o
+
+obj-$(CONFIG_MSM_SHOW_RESUME_IRQ) += msm_show_resume_irq.o
 obj-$(CONFIG_MSM_NATIVE_RESTART) += restart.o
 
 obj-$(CONFIG_MFD_MAX77693) += sec-switch.o

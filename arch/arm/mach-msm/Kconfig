@@ -233,6 +233,16 @@ config MSM_GPIOMUX
 	help
 	  Support for MSM V1 TLMM GPIOMUX architecture.
 
+config MSM_SHOW_RESUME_IRQ
+	bool "Enable logging of interrupts that could have caused resume"
+	depends on (ARM_GIC || PMIC8058)
+	default y if PMIC8058
+	default n
+	help
+		This option logs wake up interrupts that have triggered just before
+		the resume loop unrolls. Say Y if you want to debug why the system
+		resumed.
+
 config MSM_QDSP6_APR
 	bool "Audio QDSP6 APR support"
 	depends on MSM_SMD
@@ -252,6 +262,7 @@ config MSM_QDSP6_CODECS
 	  application processor and QDSP6. APR is
 	  used by audio driver to configure QDSP6's
 	  ASM, ADM and AFE.
+
 
 config MSM_SPM_V2
 	bool "Driver support for SPM Version 2"
