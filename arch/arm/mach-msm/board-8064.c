@@ -44,6 +44,7 @@
 #include <mach/mmc.h>
 #include <linux/platform_data/qcom_wcnss_device.h>
 #include <linux/mfd/pm8xxx/pm8921.h>
+#include "platsmp.h"
 
 #include <mach/board.h>
 #include <mach/msm_iomap.h>
@@ -3299,68 +3300,74 @@ static void __init apq8064_cdp_init(void)
 }
 
 MACHINE_START(APQ8064_CDP, "QCT APQ8064 CDP")
-	.map_io 			= apq8064_map_io,
-	.reserve 			= apq8064_reserve,
-	.init_irq 			= apq8064_init_irq,
-	.init_time			= msm_timer_init,
+	.map_io 		= apq8064_map_io,
+	.reserve 		= apq8064_reserve,
+	.init_irq 		= apq8064_init_irq,
+	.init_time		= msm_timer_init,
 	.init_machine 		= samsung_jf_init,
 	.init_early 		= apq8064_allocate_memory_regions,
 	.init_very_early 	= apq8064_early_reserve,
-	.restart 			= msm_restart,
+	.restart 		= msm_restart,
+	.smp			= &msm8960_smp_ops, // in theory MSM8960 and APQ8064 share addresses in common, so this *should* work
 MACHINE_END
 
 MACHINE_START(APQ8064_MTP, "QCT APQ8064 MTP")
-	.map_io 			= apq8064_map_io,
-	.reserve 			= apq8064_reserve,
-	.init_irq 			= apq8064_init_irq,
-	.init_time			= msm_timer_init,
+	.map_io 		= apq8064_map_io,
+	.reserve 		= apq8064_reserve,
+	.init_irq 		= apq8064_init_irq,
+	.init_time		= msm_timer_init,
 	.init_machine 		= samsung_jf_init,
 	.init_early 		= apq8064_allocate_memory_regions,
 	.init_very_early 	= apq8064_early_reserve,
-	.restart 			= msm_restart,
+	.restart 		= msm_restart,
+	.smp			= &msm8960_smp_ops, // in theory MSM8960 and APQ8064 share addresses in common, so this *should* work
 MACHINE_END
 
 MACHINE_START(APQ8064_LIQUID, "QCT APQ8064 LIQUID")
-	.map_io 			= apq8064_map_io,
-	.reserve 			= apq8064_reserve,
-	.init_irq 			= apq8064_init_irq,
-	.init_time			= msm_timer_init,
+	.map_io 		= apq8064_map_io,
+	.reserve 		= apq8064_reserve,
+	.init_irq 		= apq8064_init_irq,
+	.init_time		= msm_timer_init,
 	.init_machine 		= samsung_jf_init,
 	.init_early 		= apq8064_allocate_memory_regions,
 	.init_very_early 	= apq8064_early_reserve,
-	.restart 			= msm_restart,
+	.restart 		= msm_restart,
+	.smp			= &msm8960_smp_ops, // in theory MSM8960 and APQ8064 share addresses in common, so this *should* work
 MACHINE_END
 
 MACHINE_START(MPQ8064_CDP, "QCT MPQ8064 CDP")
-	.map_io 			= apq8064_map_io,
-	.reserve 			= apq8064_reserve,
-	.init_irq 			= apq8064_init_irq,
-	.init_time			= msm_timer_init,
+	.map_io 		= apq8064_map_io,
+	.reserve 		= apq8064_reserve,
+	.init_irq 		= apq8064_init_irq,
+	.init_time		= msm_timer_init,
 	.init_machine 		= samsung_jf_init,
 	.init_early 		= apq8064_allocate_memory_regions,
 	.init_very_early 	= apq8064_early_reserve,
-	.restart 			= msm_restart,
+	.restart 		= msm_restart,
+	.smp			= &msm8960_smp_ops, // in theory MSM8960 and APQ8064 share addresses in common, so this *should* work
 MACHINE_END
 
 MACHINE_START(MPQ8064_HRD, "QCT MPQ8064 HRD")
-	.map_io 			= apq8064_map_io,
-	.reserve 			= apq8064_reserve,
-	.init_irq 			= apq8064_init_irq,
-	.init_time			= msm_timer_init,
+	.map_io 		= apq8064_map_io,
+	.reserve 		= apq8064_reserve,
+	.init_irq 		= apq8064_init_irq,
+	.init_time		= msm_timer_init,
 	.init_machine 		= samsung_jf_init,
 	.init_early 		= apq8064_allocate_memory_regions,
 	.init_very_early 	= apq8064_early_reserve,
-	.restart 			= msm_restart,
+	.restart 		= msm_restart,
+	.smp			= &msm8960_smp_ops, // in theory MSM8960 and APQ8064 share addresses in common, so this *should* work
 MACHINE_END
 
 MACHINE_START(MPQ8064_DTV, "QCT MPQ8064 DTV")
-	.map_io 			= apq8064_map_io,
-	.reserve 			= apq8064_reserve,
-	.init_irq 			= apq8064_init_irq,
-	.init_time			= msm_timer_init,
+	.map_io 		= apq8064_map_io,
+	.reserve 		= apq8064_reserve,
+	.init_irq 		= apq8064_init_irq,
+	.init_time		= msm_timer_init,
 	.init_machine 		= samsung_jf_init,
 	.init_early 		= apq8064_allocate_memory_regions,
 	.init_very_early 	= apq8064_early_reserve,
-	.restart 			= msm_restart,
+	.restart 		= msm_restart,
+	.smp			= &msm8960_smp_ops, // in theory MSM8960 and APQ8064 share addresses in common, so this *should* work
 MACHINE_END
 
