@@ -218,7 +218,7 @@ static inline void smd_write_intr(unsigned int val,
 				volatile void __iomem *addr)
 {
 	wmb();
-	writel_relaxed(val, addr);
+	writel(val, addr);
 }
 
 /**
@@ -247,7 +247,7 @@ static void *smd_memcpy32_to_fifo(void *dest, const void *src, size_t num_bytes)
 	num_bytes /= sizeof(uint32_t);
 
 	while (num_bytes--)
-		writel_relaxed(*src_local++, dest_local++);
+		writel(*src_local++, dest_local++);
 
 	return dest;
 }
@@ -279,7 +279,7 @@ static void *smd_memcpy32_from_fifo(void *dest, const void *src,
 	num_bytes /= sizeof(uint32_t);
 
 	while (num_bytes--)
-		*dest_local++ = readl_relaxed(src_local++);
+		*dest_local++ = readl(src_local++);
 
 	return dest;
 }
@@ -443,29 +443,29 @@ static inline void notify_wcnss_smsm(void)
 static void notify_other_smsm(uint32_t smsm_entry, uint32_t notify_mask)
 {
 	if (smsm_info.intr_mask &&
-	    (readl_relaxed(SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_MODEM))
+	    (readl(SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_MODEM))
 				& notify_mask))
 		notify_modem_smsm();
 
 	if (smsm_info.intr_mask &&
-	    (readl_relaxed(SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_Q6))
+	    (readl(SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_Q6))
 				& notify_mask))
 		notify_dsp_smsm();
 
 	if (smsm_info.intr_mask &&
-	    (readl_relaxed(SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_WCNSS))
+	    (readl(SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_WCNSS))
 				& notify_mask)) {
 		notify_wcnss_smsm();
 	}
 
 	if (smsm_info.intr_mask &&
-	    (readl_relaxed(SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_DSPS))
+	    (readl(SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_DSPS))
 				& notify_mask)) {
 		notify_dsps_smsm();
 	}
 
 	if (smsm_info.intr_mask &&
-	    (readl_relaxed(SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_APPS))
+	    (readl(SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_APPS))
 				& notify_mask)) {
 		smsm_cb_snapshot(1);
 	}
@@ -929,7 +929,7 @@ void smd_channel_reset(uint32_t restart_pid)
 
 	/* reset SMSM entry */
 	if (smsm_info.state) {
-		writel_relaxed(0, SMSM_STATE_ADDR(restart_pid));
+		writel(0, SMSM_STATE_ADDR(restart_pid));
 
 		/* restart SMSM init handshake */
 		if (restart_pid == SMSM_MODEM) {
@@ -2276,7 +2276,7 @@ static int smsm_cb_init(void)
 	mutex_lock(&smsm_lock);
 	for (n = 0; n < SMSM_NUM_ENTRIES; n++) {
 		state_info = &smsm_states[n];
-		state_info->last_value = readl_relaxed(SMSM_STATE_ADDR(n));
+		state_info->last_value = readl(SMSM_STATE_ADDR(n));
 		state_info->intr_mask_set = 0x0;
 		state_info->intr_mask_clear = 0x0;
 		INIT_LIST_HEAD(&state_info->callbacks);
@@ -2334,7 +2334,7 @@ static int smsm_init(void)
 						SMEM_ANY_HOST_FLAG);
 
 		if (smsm_info.state)
-			writel_relaxed(0, SMSM_STATE_ADDR(SMSM_APPS_STATE));
+			writel(0, SMSM_STATE_ADDR(SMSM_APPS_STATE));
 	}
 
 	if (!smsm_info.intr_mask) {
@@ -2346,11 +2346,11 @@ static int smsm_init(void)
 
 		if (smsm_info.intr_mask) {
 			for (i = 0; i < SMSM_NUM_ENTRIES; i++)
-				writel_relaxed(0x0,
+				writel(0x0,
 					SMSM_INTR_MASK_ADDR(i, SMSM_APPS));
 
 			/* Configure legacy modem bits */
-			writel_relaxed(LEGACY_MODEM_SMSM_MASK,
+			writel(LEGACY_MODEM_SMSM_MASK,
 				SMSM_INTR_MASK_ADDR(SMSM_MODEM_STATE,
 					SMSM_APPS));
 		}
@@ -2410,7 +2410,7 @@ static void smsm_cb_snapshot(uint32_t use_wakeup_source)
 
 	/* queue state entries */
 	for (n = 0; n < SMSM_NUM_ENTRIES; n++) {
-		new_state = readl_relaxed(SMSM_STATE_ADDR(n));
+		new_state = readl(SMSM_STATE_ADDR(n));
 
 		ret = kfifo_in(&smsm_snapshot_fifo,
 				&new_state, sizeof(new_state));
@@ -2462,9 +2462,9 @@ static irqreturn_t smsm_irq_handler(int irq, void *data)
 		SMSM_INFO("<SM NO STATE>\n");
 	} else {
 		unsigned old_apps, apps;
-		unsigned modm = readl_relaxed(SMSM_STATE_ADDR(SMSM_MODEM_STATE));
+		unsigned modm = readl(SMSM_STATE_ADDR(SMSM_MODEM_STATE));
 
-		old_apps = apps = readl_relaxed(SMSM_STATE_ADDR(SMSM_APPS_STATE));
+		old_apps = apps = readl(SMSM_STATE_ADDR(SMSM_APPS_STATE));
 
 		SMSM_DBG("<SM %08x %08x>\n", apps, modm);
 		if (modm & SMSM_RESET) {
@@ -2478,7 +2478,7 @@ static irqreturn_t smsm_irq_handler(int irq, void *data)
 
 		if (old_apps != apps) {
 			SMSM_DBG("<SM %08x NOTIFY>\n", apps);
-			writel_relaxed(apps, SMSM_STATE_ADDR(SMSM_APPS_STATE));
+			writel(apps, SMSM_STATE_ADDR(SMSM_APPS_STATE));
 			notify_other_smsm(SMSM_APPS_STATE, (old_apps ^ apps));
 		}
 
@@ -2551,9 +2551,9 @@ int smsm_change_intr_mask(uint32_t smsm_entry,
 	smsm_states[smsm_entry].intr_mask_clear = clear_mask;
 	smsm_states[smsm_entry].intr_mask_set = set_mask;
 
-	old_mask = readl_relaxed(SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_APPS));
+	old_mask = readl(SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_APPS));
 	new_mask = (old_mask & ~clear_mask) | set_mask;
-	writel_relaxed(new_mask, SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_APPS));
+	writel(new_mask, SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_APPS));
 
 	wmb();
 	spin_unlock_irqrestore(&smem_lock, flags);
@@ -2575,7 +2575,7 @@ int smsm_get_intr_mask(uint32_t smsm_entry, uint32_t *intr_mask)
 		return -EIO;
 	}
 
-	*intr_mask = readl_relaxed(SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_APPS));
+	*intr_mask = readl(SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_APPS));
 	return 0;
 }
 EXPORT_SYMBOL(smsm_get_intr_mask);
@@ -2598,9 +2598,9 @@ int smsm_change_state(uint32_t smsm_entry,
 	}
 	spin_lock_irqsave(&smem_lock, flags);
 
-	old_state = readl_relaxed(SMSM_STATE_ADDR(smsm_entry));
+	old_state = readl(SMSM_STATE_ADDR(smsm_entry));
 	new_state = (old_state & ~clear_mask) | set_mask;
-	writel_relaxed(new_state, SMSM_STATE_ADDR(smsm_entry));
+	writel(new_state, SMSM_STATE_ADDR(smsm_entry));
 	SMSM_POWER_INFO("%s %d:%08x->%08x", __func__, smsm_entry,
 			old_state, new_state);
 	notify_other_smsm(SMSM_APPS_STATE, (old_state ^ new_state));
@@ -2625,7 +2625,7 @@ uint32_t smsm_get_state(uint32_t smsm_entry)
 	if (!smsm_info.state)
 		pr_err("smsm_get_state <SM NO STATE>\n");
 	else
-		rv = readl_relaxed(SMSM_STATE_ADDR(smsm_entry));
+		rv = readl(SMSM_STATE_ADDR(smsm_entry));
 
 	return rv;
 }
@@ -2799,7 +2799,7 @@ int smsm_state_cb_register(uint32_t smsm_entry, uint32_t mask,
 		spin_lock_irqsave(&smem_lock, flags);
 		new_mask = (new_mask & ~state->intr_mask_clear)
 				| state->intr_mask_set;
-		writel_relaxed(new_mask,
+		writel(new_mask,
 				SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_APPS));
 		wmb();
 		spin_unlock_irqrestore(&smem_lock, flags);
@@ -2874,7 +2874,7 @@ int smsm_state_cb_deregister(uint32_t smsm_entry, uint32_t mask,
 		spin_lock_irqsave(&smem_lock, flags);
 		new_mask = (new_mask & ~state->intr_mask_clear)
 				| state->intr_mask_set;
-		writel_relaxed(new_mask,
+		writel(new_mask,
 				SMSM_INTR_MASK_ADDR(smsm_entry, SMSM_APPS));
 		wmb();
 		spin_unlock_irqrestore(&smem_lock, flags);
