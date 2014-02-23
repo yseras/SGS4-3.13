@@ -1,15 +1,15 @@
-obj-y += timer.o
+CFLAGS_scm.o :=$(call as-instr,.arch_extension sec,-DREQUIRES_SEC=1)
 
+obj-y += io.o dma.o memory.o
+ifndef CONFIG_ARM_ARCH_TIMER
+obj-y += timer.o
+endif
 obj-$(CONFIG_MSM_VIC) += irq-vic.o
 
 obj-$(CONFIG_ARCH_MSM7X00A) += irq.o
 obj-$(CONFIG_ARCH_QSD8X50) += sirc.o
 
 obj-$(CONFIG_MSM_PROC_COMM) += proc_comm.o clock-pcom.o vreg.o
-
-obj-$(CONFIG_ARCH_MSM7X00A) += dma.o io.o
-obj-$(CONFIG_ARCH_MSM7X30) += dma.o io.o
-obj-$(CONFIG_ARCH_QSD8X50) += dma.o io.o
 
 obj-$(CONFIG_MSM_SMD) += smd.o smd_debug.o smd_private.o smd_init_dt.o smsm_debug.o #Updated from 3.10
 obj-$(CONFIG_MSM_SMD) += last_radio_log.o
@@ -37,7 +37,6 @@ obj-$(CONFIG_PM) += pm-boot.o
 obj-$(CONFIG_CPU_V7) += idle-v7.o
 
 obj-$(CONFIG_ARCH_APQ8064) += acpuclock.o acpuclock-8064.o
-obj-$(CONFIG_ARCH_APQ8064) += io.o dma.o memory.o
 obj-$(CONFIG_ARCH_APQ8064) += #devices-8960.o devices-8064.o
 board-8064-all-objs += board-8064-gpiomux.o #board-8064.o board-8064-pmic.o board-8064-storage.o board-8064-camera.o board-8064-display.o board-8064-gpu.o
 
