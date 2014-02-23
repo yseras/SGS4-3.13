@@ -35,6 +35,7 @@
 #include <linux/i2c/atmel_mxt_ts.h>
 #include <linux/cyttsp-qc.h>
 #include <linux/mfd/pm8xxx/gpio.h>
+#include "platsmp.h"
 #ifdef CONFIG_HAPTIC_ISA1200
 #include <linux/i2c/isa1200.h>
 #endif
@@ -5341,4 +5342,5 @@ MACHINE_START(JF, "SAMSUNG JF")
 	.init_early 		= apq8064_allocate_memory_regions,
 	.init_very_early 	= apq8064_early_reserve,
 	.restart 		= msm_restart,
+	.smp			= &msm8960_smp_ops, // in theory MSM8960 and APQ8064 share addresses in common, so this *should* work
 MACHINE_END
