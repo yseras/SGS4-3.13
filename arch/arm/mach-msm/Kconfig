@@ -216,6 +216,10 @@ config MSM_SMD
 	  used to communicate with various services on the baseband
 	  processor.
 
+config MSM_HSIC_GPIO_REV06
+	bool "distinguish rev03 and rev06"
+	default n
+
 config MSM_NATIVE_RESTART
 	bool
 
