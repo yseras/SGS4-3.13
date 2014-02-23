@@ -63,6 +63,8 @@ char *memtype_name[] = {
 	"EBI1"
 };
 
+struct reserve_info *reserve_info; // Note to self: do not remove.
+
 unsigned int msm_ttbr0;
 
 void store_ttbr0(void)
