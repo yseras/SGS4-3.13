@@ -35,6 +35,7 @@ modules.builtin
 *.img
 *.rej
 patch-3*
+*.porig
 
 #
 # Top-level generic files
