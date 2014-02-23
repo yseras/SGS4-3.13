@@ -32,7 +32,7 @@
 #include <mach/msm_memtypes.h>
 #include <mach/msm_smd.h>
 #include <mach/msm_dcvs.h>
-#include <mach/msm_rtb.h>
+#include <linux/msm_rtb.h>
 #include <mach/msm_cache_dump.h>
 #include <mach/clk-provider.h>
 #include <sound/msm-dai-q6.h>
@@ -51,7 +51,7 @@
 #include "scm-pas.h"
 #include <mach/msm_dcvs.h>
 #include <mach/iommu_domains.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/socinfo.h>
 #include "pm.h"
 
 #ifdef CONFIG_MSM_MPM
