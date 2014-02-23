@@ -37,7 +37,7 @@ obj-$(CONFIG_PM) += pm-boot.o
 obj-$(CONFIG_CPU_V7) += idle-v7.o
 
 obj-$(CONFIG_ARCH_APQ8064) += acpuclock.o acpuclock-8064.o
-obj-$(CONFIG_ARCH_APQ8064) += dma.o io.o
+obj-$(CONFIG_ARCH_APQ8064) += io.o dma.o memory.o
 obj-$(CONFIG_ARCH_APQ8064) += #devices-8960.o devices-8064.o
 board-8064-all-objs += board-8064-gpiomux.o #board-8064.o board-8064-pmic.o board-8064-storage.o board-8064-camera.o board-8064-display.o board-8064-gpu.o
 

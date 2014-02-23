@@ -36,7 +36,7 @@
 #include <linux/err.h>
 #endif
 #include <mach/msm_iomap.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/socinfo.h>
 #include <linux/sched.h>
 #include <linux/of_fdt.h>
 
