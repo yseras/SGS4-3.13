@@ -12,7 +12,7 @@
  */
 #include <linux/bitmap.h>
 #include <linux/bitops.h>
-#include <linux/gpio.h>
+#include <mach/gpio.h> /*<linux/gpio.h>*/
 #include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/irqchip/chained_irq.h>
