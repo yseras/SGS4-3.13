@@ -424,7 +424,7 @@ static void __program_context(struct msm_iommu_drvdata *iommu_drvdata,
 	msm_iommu_remote_spin_unlock(iommu_drvdata->needs_rem_spinlock);
 }
 
-static int msm_iommu_domain_init(struct iommu_domain *domain, int flags)
+static int msm_iommu_domain_init(struct iommu_domain *domain)
 {
 	struct msm_iommu_priv *priv = kzalloc(sizeof(*priv), GFP_KERNEL);
 
@@ -439,7 +439,7 @@ static int msm_iommu_domain_init(struct iommu_domain *domain, int flags)
 		goto fail_nomem;
 
 #ifdef CONFIG_IOMMU_PGTABLES_L2
-	priv->pt.redirect = flags & MSM_IOMMU_DOMAIN_PT_CACHEABLE;
+	priv->pt.redirect = MSM_IOMMU_DOMAIN_PT_CACHEABLE;
 #endif
 
 	memset(priv->pt.fl_table, 0, SZ_16K);
