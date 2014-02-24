@@ -564,7 +564,7 @@ int q6asm_audio_client_buf_alloc(unsigned int dir,
 					}
 					memset((void *)buf[cnt].data, 0, bufsz);
 #else
-					unsigned int flags = 0;
+					//unsigned int flags = 0;
 					buf[cnt].phys =
 					allocate_contiguous_ebi_nomap(bufsz,
 						SZ_4K);
@@ -631,8 +631,8 @@ int q6asm_audio_client_buf_alloc_contiguous(unsigned int dir,
 	struct audio_buffer *buf;
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
 	int len;
-#else
-	int flags = 0;
+/*#else
+	int flags = 0;*/
 #endif
 	if (!(ac) || ((dir != IN) && (dir != OUT)))
 		return -EINVAL;
