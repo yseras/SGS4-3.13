@@ -779,16 +779,24 @@ done:
  * this dispatch queue
  *
  */
-static int row_init_queue(struct request_queue *q)
+static int row_init_queue(struct request_queue *q, struct elevator_type *e)
 {
 
 	struct row_data *rdata;
+	struct elevator_queue *eq;
 	int i;
+
+	eq = elevator_alloc(q, e);
+	if (!eq)
+		return -ENOMEM;
 
 	rdata = kmalloc_node(sizeof(*rdata),
 			     GFP_KERNEL | __GFP_ZERO, q->node);
-	if (!rdata)
+	if (!rdata) {
+		kobject_put(&eq->kobj);
 		return -ENOMEM;
+	}
+	eq->elevator_data = rdata;
 
 	memset(rdata, 0, sizeof(*rdata));
 	for (i = 0; i < ROWQ_MAX_PRIO; i++) {
