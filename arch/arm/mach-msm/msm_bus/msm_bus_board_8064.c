@@ -147,6 +147,8 @@ static struct msm_bus_node_info apps_fabric_info[] = {
 		.num_mports = ARRAY_SIZE(mport_kmpss_m1),
 		.tier = tier2,
 		.num_tiers = ARRAY_SIZE(tier2),
+		.prio_rd = 1,
+		.prio_wr = 1,
 	},
 	{
 		.id = MSM_BUS_SLAVE_EBI_CH0,
@@ -970,3 +972,17 @@ struct msm_bus_fabric_registration msm_bus_8064_cpss_fpb_pdata = {
 	.ntieredslaves = 0,
 	.board_algo = &msm_bus_board_algo,
 };
+
+void msm_bus_board_init(struct msm_bus_fabric_registration *pdata)
+{
+	pdata->board_algo = &msm_bus_board_algo;
+}
+
+void msm_bus_board_set_nfab(struct msm_bus_fabric_registration *pdata,
+	int nfab)
+{
+	if (nfab <= 0)
+		return;
+
+	msm_bus_board_algo.board_nfab = nfab;
+}
