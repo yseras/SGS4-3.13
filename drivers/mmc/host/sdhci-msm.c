@@ -3019,7 +3019,7 @@ static int sdhci_msm_probe(struct platform_device *pdev)
 	}
 
 	msm_host->sdhci_msm_pdata.ops = &sdhci_msm_ops;
-	host = sdhci_pltfm_init(pdev, &msm_host->sdhci_msm_pdata);
+	host = sdhci_pltfm_init(pdev, &msm_host->sdhci_msm_pdata, sizeof(struct sdhci_msm_host));
 	if (IS_ERR(host)) {
 		ret = PTR_ERR(host);
 		goto out;
@@ -3278,7 +3278,7 @@ static int sdhci_msm_probe(struct platform_device *pdev)
 
 	if (gpio_is_valid(msm_host->pdata->status_gpio)) {
 		ret = mmc_gpio_request_cd(msm_host->mmc,
-				msm_host->pdata->status_gpio);
+				msm_host->pdata->status_gpio, 0);
 		if (ret) {
 			dev_err(&pdev->dev, "%s: Failed to request card detection IRQ %d\n",
 					__func__, ret);
@@ -3589,7 +3589,7 @@ static int sdhci_msm_resume(struct device *dev)
 
 	if (gpio_is_valid(msm_host->pdata->status_gpio)) {
 		ret = mmc_gpio_request_cd(msm_host->mmc,
-				msm_host->pdata->status_gpio);
+				msm_host->pdata->status_gpio, 0);
 		if (ret)
 			pr_err("%s: %s: Failed to request card detection IRQ %d\n",
 					mmc_hostname(host->mmc), __func__, ret);
