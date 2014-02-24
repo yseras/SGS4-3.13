@@ -88,6 +88,7 @@ config ARCH_MSM8960
 	select MSM_SCM if SMP
 	select MSM_SMD
 	select SOC_BUS
+	select MEMORY_HOLE_CARVEOUT
 
 endmenu
 
