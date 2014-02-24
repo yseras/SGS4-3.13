@@ -80,9 +80,9 @@ static void _update_cutoff(struct devfreq_msm_adreno_tz_data *priv,
 	}
 }
 
-static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq,
-				u32 *flag)
+static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq)
 {
+	// The flag argument is gone from newer kernels and anything referencing it has been commented out
 	int result = 0;
 	struct devfreq_msm_adreno_tz_data *priv = devfreq->data;
 	struct devfreq_dev_status stats;
@@ -103,7 +103,7 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq,
 	}
 
 	*freq = stats.current_frequency;
-	*flag = 0;
+	//*flag = 0;
 	priv->bin.total_time += stats.total_time;
 	priv->bin.busy_time += stats.busy_time;
 	if (priv->bus.num) {
@@ -169,7 +169,7 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq,
 	 */
 	if (norm_cycles > priv->bus.max) {
 		_update_cutoff(priv, norm_cycles);
-		*flag = DEVFREQ_FLAG_FAST_HINT;
+		//*flag = DEVFREQ_FLAG_FAST_HINT;
 	} else {
 		/* GPU votes for IB not AB so don't under vote the system */
 		norm_cycles = (100 * norm_cycles) / TARGET;
@@ -177,11 +177,11 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq,
 		act_level = (act_level < 0) ? 0 : act_level;
 		act_level = (act_level >= priv->bus.num) ?
 			(priv->bus.num - 1) : act_level;
-		if (norm_cycles > priv->bus.up[act_level] &&
+		/*if (norm_cycles > priv->bus.up[act_level] &&
 				gpu_percent > CAP)
 			*flag = DEVFREQ_FLAG_FAST_HINT;
 		else if (norm_cycles < priv->bus.down[act_level] && level)
-			*flag = DEVFREQ_FLAG_SLOW_HINT;
+			*flag = DEVFREQ_FLAG_SLOW_HINT; */
 	}
 
 clear:
