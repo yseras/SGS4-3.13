@@ -189,6 +189,7 @@
 #define  SDHCI_CAN_VDD_300	0x02000000
 #define  SDHCI_CAN_VDD_180	0x04000000
 #define  SDHCI_CAN_64BIT	0x10000000
+#define  SDHCI_ASYNC_INTR	0x20000000
 
 #define  SDHCI_SUPPORT_SDR50	0x00000001
 #define  SDHCI_SUPPORT_SDR104	0x00000002
@@ -296,6 +297,21 @@ struct sdhci_ops {
 	void    (*adma_workaround)(struct sdhci_host *host, u32 intmask);
 	void	(*platform_init)(struct sdhci_host *host);
 	void    (*card_event)(struct sdhci_host *host);
+	void    (*check_power_status)(struct sdhci_host *host, u32 req_type);
+#define REQ_BUS_OFF	(1 << 0)
+#define REQ_BUS_ON	(1 << 1)
+#define REQ_IO_LOW	(1 << 2)
+#define REQ_IO_HIGH	(1 << 3)
+	int	(*execute_tuning)(struct sdhci_host *host, u32 opcode);
+	void	(*toggle_cdr)(struct sdhci_host *host, bool enable);
+	unsigned int	(*get_max_segments)(void);
+	void	(*platform_bus_voting)(struct sdhci_host *host, u32 enable);
+	void    (*disable_data_xfer)(struct sdhci_host *host);
+	void	(*dump_vendor_regs)(struct sdhci_host *host);
+	int	(*config_auto_tuning_cmd)(struct sdhci_host *host,
+					  bool enable,
+					  u32 type);
+	int	(*enable_controller_clock)(struct sdhci_host *host);
 };
 
 #ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
