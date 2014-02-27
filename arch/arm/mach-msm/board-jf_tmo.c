@@ -23,7 +23,7 @@
 #include <linux/mfd/wcd9xxx/core.h>
 #include <linux/mfd/wcd9xxx/pdata.h>
 #include <linux/mfd/pm8xxx/misc.h>
-#include <linux/msm_ssbi.h>
+#include <linux/ssbi.h> // was linux/msm_ssbi.h
 #include <linux/spi/spi.h>
 #include <linux/dma-contiguous.h>
 #include <linux/dma-mapping.h>
