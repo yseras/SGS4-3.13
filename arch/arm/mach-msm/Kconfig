@@ -10,7 +10,6 @@ config ARCH_APQ8064
 	select ARM_GIC
 	select CPU_V7
 	select MSM_SCM if SMP
-	select HAVE_ARM_ARCH_TIMER
 	select MSM_GPIOMUX
 	select MSM_REMOTE_SPINLOCK_SFPB
 	select MSM_PIL
