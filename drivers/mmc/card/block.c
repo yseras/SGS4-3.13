@@ -1503,6 +1503,20 @@ static inline u8 mmc_calc_packed_hdr_segs(struct request_queue *q,
 	return nr_segs;
 }
 
+/**
+ * mmc_blk_disable_wr_packing() - disables packing mode
+ * @mq:	MMC queue.
+ *
+ */
+void mmc_blk_disable_wr_packing(struct mmc_queue *mq)
+{
+	if (mq) {
+		mq->wr_packing_enabled = false;
+		mq->num_of_potential_packed_wr_reqs = 0;
+	}
+}
+EXPORT_SYMBOL(mmc_blk_disable_wr_packing);
+
 static u8 mmc_blk_prep_packed_list(struct mmc_queue *mq, struct request *req)
 {
 	struct request_queue *q = mq->queue;
