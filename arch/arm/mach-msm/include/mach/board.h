@@ -1,7 +1,7 @@
 /* arch/arm/mach-msm/include/mach/board.h
  *
  * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2008-2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2008-2014, The Linux Foundation. All rights reserved.
  * Author: Brian Swetland <swetland@google.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -24,8 +24,16 @@
 #include <linux/leds-pmic8058.h>
 #include <linux/clkdev.h>
 #include <linux/of_platform.h>
-#include <linux/msm_ssbi.h>
+#include <linux/ssbi.h>
 #include <mach/msm_bus.h>
+
+#define RF_TYPE_16 0x10
+#define RF_TYPE_17 0x11
+#define RF_TYPE_18 0x12
+#define RF_TYPE_32 0x20
+#define RF_TYPE_33 0x21
+#define RF_TYPE_48 0x30
+#define RF_TYPE_49 0x31
 
 struct msm_camera_io_ext {
 	uint32_t mdcphy;
@@ -63,6 +71,7 @@ struct msm_camera_device_platform_data {
 	uint8_t csid_core;
 	uint8_t is_vpe;
 	struct msm_bus_scale_pdata *cam_bus_scale_table;
+	uint8_t csiphy_core;
 };
 
 #ifdef CONFIG_SENSORS_MT9T013
@@ -84,9 +93,6 @@ struct msm_camera_legacy_device_platform_data {
 #define MSM_CAMERA_FLASH_SRC_EXT     (0x00000001<<3)
 #define MSM_CAMERA_FLASH_SRC_LED (0x00000001<<3)
 #define MSM_CAMERA_FLASH_SRC_LED1 (0x00000001<<4)
-#if defined(CONFIG_MACH_JACTIVE_ATT)
-#define MSM_CAMERA_FLASH_SRC_PMIC_GPIO (0x00000001<<5) /* richardra added 3 */
-#endif
 
 struct msm_camera_sensor_flash_pmic {
 	uint8_t num_of_src;
@@ -96,16 +102,6 @@ struct msm_camera_sensor_flash_pmic {
 	enum pmic8058_leds led_src_2;
 	int (*pmic_set_current)(enum pmic8058_leds id, unsigned mA);
 };
-
-#if defined(CONFIG_MACH_JACTIVE_ATT)
-/* richardra added 4 */
-struct msm_camera_sensor_flash_pmic_gpio {
-	uint8_t num_of_src;
-	uint8_t led_src_1;
-	uint8_t led_src_2;
-	int (*pmic_set_func)(uint8_t pmic_gpio, uint8_t onoff);
-};
-#endif
 
 struct msm_camera_sensor_flash_pwm {
 	uint32_t freq;
@@ -139,24 +135,12 @@ struct msm_camera_sensor_flash_led {
 	const int led_name_len;
 };
 
-#if defined(CONFIG_MACH_JACTIVE_ATT)
 struct msm_camera_sensor_flash_src {
 	int flash_sr_type;
-
-	union {
-		struct msm_camera_sensor_flash_pmic pmic_src;
-		struct msm_camera_sensor_flash_pwm pwm_src;
-		struct msm_camera_sensor_flash_current_driver
-			current_driver_src;
-		struct msm_camera_sensor_flash_external
-			ext_driver_src;
-		struct msm_camera_sensor_flash_led led_src;
-		struct msm_camera_sensor_flash_pmic_gpio pmic_gpio_src;
-	} _fsrc;
-};
-#else
-struct msm_camera_sensor_flash_src {
-	int flash_sr_type;
+	struct gpio *init_gpio_tbl;
+	uint8_t init_gpio_tbl_size;
+	struct msm_gpio_set_tbl *set_gpio_tbl;
+	uint8_t set_gpio_tbl_size;
 
 	union {
 		struct msm_camera_sensor_flash_pmic pmic_src;
@@ -168,11 +152,13 @@ struct msm_camera_sensor_flash_src {
 		struct msm_camera_sensor_flash_led led_src;
 	} _fsrc;
 };
-#endif
 
 struct msm_camera_sensor_flash_data {
 	int flash_type;
 	struct msm_camera_sensor_flash_src *flash_src;
+	struct i2c_board_info const *board_info;
+	int bus_id;
+	uint8_t flash_src_index;
 };
 
 struct msm_camera_sensor_strobe_flash_data {
@@ -204,10 +190,9 @@ struct msm_gpio_set_tbl {
 	uint32_t delay;
 };
 
-struct msm_camera_csi_lane_params {
-	uint16_t csi_lane_assign;
-	uint16_t csi_lane_mask;
-	uint8_t csi_phy_sel;
+struct msm_camera_gpio_num_info {
+	uint16_t gpio_num[10];
+	uint8_t valid[10];
 };
 
 struct msm_camera_gpio_conf {
@@ -224,6 +209,7 @@ struct msm_camera_gpio_conf {
 	uint8_t camera_off_table_size;
 	uint32_t *camera_on_table;
 	uint8_t camera_on_table_size;
+	struct msm_camera_gpio_num_info *gpio_num_info;
 };
 
 enum msm_camera_i2c_mux_mode {
@@ -238,13 +224,6 @@ struct msm_camera_i2c_conf {
 	enum msm_camera_i2c_mux_mode i2c_mux_mode;
 };
 
-enum msm_camera_vreg_name_t {
-	CAM_VDIG,
-	CAM_VIO,
-	CAM_VANA,
-	CAM_VAF,
-};
-
 struct msm_camera_sensor_platform_info {
 	int mount_angle;
 	int sensor_reset;
@@ -254,22 +233,6 @@ struct msm_camera_sensor_platform_info {
 	struct msm_camera_gpio_conf *gpio_conf;
 	struct msm_camera_i2c_conf *i2c_conf;
 	struct msm_camera_csi_lane_params *csi_lane_params;
-	void(*sensor_power_on)(void);
-	void(*sensor_power_off)(void);
-#if defined(CONFIG_MACH_JACTIVE_ATT) || defined(CONFIG_MACH_JACTIVE_EUR)
-	void(*sensor_power_on_sub)(void);
-	void(*sensor_power_off_sub)(void);	
-#endif	
-	void(*sensor_af_power_off)(void);
-	void(*sensor_vddio_power_off)(void);
-	void(*sensor_pmic_gpio_ctrl)(int, int);
-	int (*config_isp_irq)(void);
-	int (*config_sambaz)(int);
-	int irq;
-	int irq_gpio;
-	int reset;
-	int stby;
-	int (*sys_rev)(void);
 };
 
 enum msm_camera_actuator_name {
@@ -291,10 +254,6 @@ struct msm_actuator_info {
 	int vcm_pwd;
 	int vcm_enable;
 };
-enum msm_eeprom_type {
-	MSM_EEPROM_I2C,
-	MSM_EEPROM_SPI,
-};
 
 struct msm_eeprom_info {
 	struct i2c_board_info const *board_info;
@@ -302,9 +261,6 @@ struct msm_eeprom_info {
 	int eeprom_reg_addr;
 	int eeprom_read_length;
 	int eeprom_i2c_slave_addr;
-#if defined(CONFIG_MACH_JACTIVE_ATT) || defined(CONFIG_MACH_JACTIVE_EUR)
-	enum msm_eeprom_type type;
-#endif
 };
 
 struct msm_camera_sensor_info {
@@ -440,9 +396,6 @@ struct msm_panel_common_pdata {
 	int (*vga_switch)(int select_vga);
 	int *gpio_num;
 	u32 mdp_max_clk;
-	u64 mdp_max_bw;
-	u32 mdp_bw_ab_factor;
-	u32 mdp_bw_ib_factor;
 #ifdef CONFIG_MSM_BUS_SCALING
 	struct msm_bus_scale_pdata *mdp_bus_scale_table;
 #endif
@@ -454,6 +407,7 @@ struct msm_panel_common_pdata {
 	u32 splash_screen_addr;
 	u32 splash_screen_size;
 	char mdp_iommu_split_domain;
+	u32 avtimer_phy;
 };
 
 
@@ -484,17 +438,11 @@ struct mddi_platform_data {
 
 struct mipi_dsi_platform_data {
 	int vsync_gpio;
-	void (*active_reset)(int high);
-	int (*power_common)(void);
 	int (*dsi_power_save)(int on);
 	int (*dsi_client_reset)(void);
 	int (*get_lane_config)(void);
 	char (*splash_is_enabled)(void);
 	int target_type;
-#if defined(CONFIG_SUPPORT_SECOND_POWER)
-	int (*panel_power_save)(int on);
-#endif
-
 };
 
 enum mipi_dsi_3d_ctrl {
@@ -519,6 +467,7 @@ struct mipi_dsi_panel_platform_data {
 	char dlane_swap;
 	void (*dsi_pwm_cfg)(void);
 	char enable_wled_bl_ctrl;
+	void (*gpio_set_backlight)(int bl_level);
 };
 
 struct lvds_panel_platform_data {
@@ -550,7 +499,6 @@ struct msm_hdmi_platform_data {
 	int (*gpio_config)(int on);
 	int (*init_irq)(void);
 	bool (*check_hdcp_hw_support)(void);
-	bool (*source)(void);
 	bool is_mhl_enabled;
 };
 
@@ -571,8 +519,22 @@ struct msm_mhl_platform_data {
 	bool mhl_enabled;
 };
 
+/**
+ * msm_i2c_platform_data: i2c-qup driver configuration data
+ *
+ * @clk_ctl_xfer : When true, the clocks's state (prepare_enable/
+ *       unprepare_disable) is controlled by i2c-transaction's begining and
+ *       ending. When false, the clock's state is controlled by runtime-pm
+ *       events.
+ * @active_only when set, votes when system active and removes the vote when
+ *       system goes idle (optimises for performance). When unset, voting using
+ *       runtime pm (optimizes for power).
+ * @master_id master id number of the i2c core or its wrapper (BLSP/GSBI).
+ *       When zero, clock path voting is disabled.
+ */
 struct msm_i2c_platform_data {
 	int clk_freq;
+	bool clk_ctl_xfer;
 	uint32_t rmutex;
 	const char *rsl_id;
 	uint32_t pm_lat;
@@ -584,11 +546,13 @@ struct msm_i2c_platform_data {
 	int use_gsbi_shared_mode;
 	int keep_ahb_clk_on;
 	void (*msm_i2c_config_gpio)(int iface, int config_type);
+	bool active_only;
+	uint32_t master_id;
 };
 
 struct msm_i2c_ssbi_platform_data {
 	const char *rsl_id;
-	enum msm_ssbi_controller_type controller_type;
+	enum ssbi_controller_type controller_type;
 };
 
 struct msm_vidc_platform_data {
@@ -598,13 +562,38 @@ struct msm_vidc_platform_data {
 	int disable_fullhd;
 	u32 cp_enabled;
 	u32 secure_wb_heap;
-	u32 enable_sec_metadata;
 #ifdef CONFIG_MSM_BUS_SCALING
 	struct msm_bus_scale_pdata *vidc_bus_client_pdata;
 #endif
 	int cont_mode_dpb_count;
 	int disable_turbo;
 	unsigned long fw_addr;
+};
+
+enum msm_vidc_v4l2_iommu_map {
+	MSM_VIDC_V4L2_IOMMU_MAP_NS = 0,
+	MSM_VIDC_V4L2_IOMMU_MAP_CP,
+	MSM_VIDC_V4L2_IOMMU_MAP_MAX,
+};
+
+struct msm_vidc_v4l2_platform_data {
+	/*
+	 * Should be a <num_iommu_table x 2> array where
+	 * iommu_table[n][0] is the start address and
+	 * iommu_table[n][1] is the size.
+	 */
+	int64_t **iommu_table;
+	int num_iommu_table;
+
+	/*
+	 * Should be a <num_load_table x 2> array where
+	 * load_table[n][0] is the load and load_table[n][1]
+	 * is the desired clock rate.
+	 */
+	int64_t **load_table;
+	int num_load_table;
+
+	uint32_t max_load;
 };
 
 struct vcap_platform_data {
@@ -635,7 +624,13 @@ void msm_map_msm8930_io(void);
 void msm_map_apq8064_io(void);
 void msm_map_msm7x30_io(void);
 void msm_map_fsm9xxx_io(void);
+void msm_map_fsm9900_io(void);
+void fsm9900_init_gpiomux(void);
+void fsm9900_rf_init_gpiomux(void);
 void msm_map_8974_io(void);
+void msm_map_8084_io(void);
+void msm_map_mdm9630_io(void);
+void msm_map_msmsamarium_io(void);
 void msm_map_msm8625_io(void);
 void msm_map_msm9625_io(void);
 void msm_init_irq(void);
@@ -644,9 +639,25 @@ void vic_handle_irq(struct pt_regs *regs);
 void msm_8974_reserve(void);
 void msm_8974_very_early(void);
 void msm_8974_init_gpiomux(void);
+void apq8084_init_gpiomux(void);
 void msm9625_init_gpiomux(void);
+void mdm9630_init_gpiomux(void);
+void msmsamarium_init_gpiomux(void);
 void msm_map_mpq8092_io(void);
 void mpq8092_init_gpiomux(void);
+void msm_map_msm8226_io(void);
+void msm8226_init_irq(void);
+void msm8226_init_gpiomux(void);
+void msm8610_init_gpiomux(void);
+void msm_map_msm8610_io(void);
+void msm8610_init_irq(void);
+
+/* Dump debug info (states, rate, etc) of clocks */
+#if defined(CONFIG_ARCH_MSM7X27)
+void msm_clk_dump_debug_info(void);
+#else
+static inline void msm_clk_dump_debug_info(void) {}
+#endif
 
 struct mmc_platform_data;
 int msm_add_sdcc(unsigned int controller,
@@ -674,5 +685,10 @@ void msm_snddev_tx_route_deconfig(void);
 
 extern unsigned int msm_shared_ram_phys; /* defined in arch/arm/mach-msm/io.c */
 
+#if defined(CONFIG_MSM_SMD) && defined(CONFIG_DEBUG_FS)
+int smd_debugfs_init(void);
+#else
+static inline int smd_debugfs_init(void) { return 0; }
+#endif
 
 #endif
