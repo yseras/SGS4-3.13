@@ -38,7 +38,7 @@
 #if defined(CONFIG_MSM_SMD)
 #include <mach/msm_smsm.h>
 #endif
-/*#include "timer.h"*/
+#include "timer.h"
 
 enum {
 	MSM_TIMER_DEBUG_SYNC = 1U << 0,
