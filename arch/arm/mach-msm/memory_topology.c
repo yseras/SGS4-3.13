@@ -18,7 +18,7 @@
 #include <linux/mutex.h>
 #include <linux/memory.h>
 #include <mach/msm_memtypes.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/socinfo.h>
 #include "smd_private.h"
 
 #if defined(CONFIG_ARCH_MSM8960)
@@ -95,13 +95,14 @@ int __init meminfo_init(unsigned int type, unsigned int min_bank_size)
 	/* logical memory regions for dmm */
 	nr_mem_regions = 0;
 
-	ram_ptable = smem_alloc(SMEM_USABLE_RAM_PARTITION_TABLE,
-				sizeof(struct smem_ram_ptable));
+	ram_ptable = smem_find(SMEM_USABLE_RAM_PARTITION_TABLE,
+				sizeof(struct smem_ram_ptable), 0, SMEM_ANY_HOST_FLAG); // Double check this
 
 	if (!ram_ptable) {
-		pr_err("Could not read ram partition table\n");
+		pr_err("Could not read ram partition table. smem_find failed.\n");
 		return -EINVAL;
 	}
+
 
 	pr_info("meminfo_init: smem ram ptable found: ver: %d len: %d\n",
 			ram_ptable->version, ram_ptable->len);
