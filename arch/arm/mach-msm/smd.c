@@ -49,6 +49,26 @@
 #include "smd_private.h"
 #include "../../../drivers/soc/qcom/smem_private.h"
 
+#if defined(CONFIG_ARCH_QSD8X50) || defined(CONFIG_ARCH_MSM8X60) \
+	|| defined(CONFIG_ARCH_MSM8960) || defined(CONFIG_ARCH_FSM9XXX) \
+	|| defined(CONFIG_ARCH_MSM9615)	|| defined(CONFIG_ARCH_APQ8064)
+#define CONFIG_QDSP6 1
+#endif
+
+#if defined(CONFIG_ARCH_MSM8X60) || defined(CONFIG_ARCH_MSM8960) \
+	|| defined(CONFIG_ARCH_APQ8064)
+#define CONFIG_DSPS 1
+#endif
+
+#if defined(CONFIG_ARCH_MSM8960) \
+	|| defined(CONFIG_ARCH_APQ8064)
+#define CONFIG_WCNSS 1
+#define CONFIG_DSPS_SMSM 1
+#endif
+
+#define MODULE_NAME "msm_smd"
+#define SMEM_VERSION 0x000B
+#define SMD_VERSION 0x00020000
 #define SMSM_SNAPSHOT_CNT 64
 #define SMSM_SNAPSHOT_SIZE ((SMSM_NUM_ENTRIES + 1) * 4 + sizeof(uint64_t))
 #define RSPIN_INIT_WAIT_MS 1000
@@ -519,7 +539,7 @@ struct smd_shared_word_access {
  */
 static struct edge_to_pid edge_to_pids[] = {
 	[SMD_APPS_MODEM] = {SMD_APPS, SMD_MODEM, "modem"},
-	[SMD_APPS_QDSP] = {SMD_APPS, SMD_Q6, "adsp"},
+	[SMD_APPS_QDSP] = {SMD_APPS, SMD_Q6, "q6"}, //was adsp
 	[SMD_MODEM_QDSP] = {SMD_MODEM, SMD_Q6},
 	[SMD_APPS_DSPS] = {SMD_APPS, SMD_DSPS, "dsps"},
 	[SMD_MODEM_DSPS] = {SMD_MODEM, SMD_DSPS},
