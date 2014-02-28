@@ -18,6 +18,7 @@
 #include <linux/mm_types.h>
 #include <linux/bootmem.h>
 #include <linux/module.h>
+#include <linux/memory_alloc.h>
 #include <linux/memblock.h>
 #include <asm/memblock.h>
 #include <asm/pgtable.h>
@@ -64,6 +65,22 @@ char *memtype_name[] = {
 };
 
 struct reserve_info *reserve_info; // Note to self: do not remove.
+
+static int get_ebi_memtype(void)
+{
+	/* on 7x30 and 8x55 "EBI1 kernel PMEM" is really on EBI0 */
+	if (cpu_is_msm7x30() || cpu_is_msm8x55())
+		return MEMTYPE_EBI0;
+	return MEMTYPE_EBI1;
+}
+
+unsigned long allocate_contiguous_ebi_nomap(unsigned long size,
+	unsigned long align)
+{
+	return _allocate_contiguous_memory_nomap(size, get_ebi_memtype(),
+		align, __builtin_return_address(0));
+}
+EXPORT_SYMBOL(allocate_contiguous_ebi_nomap);
 
 unsigned int msm_ttbr0;
 
