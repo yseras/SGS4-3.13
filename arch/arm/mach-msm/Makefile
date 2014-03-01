@@ -6,6 +6,10 @@ obj-y += timer.o
 endif
 obj-$(CONFIG_MSM_VIC) += irq-vic.o
 
+obj-y += acpuclock.o
+obj-$(CONFIG_ARCH_MSM_KRAIT) += acpuclock-krait.o # This should never be updated
+obj-$(CONFIG_ARCH_MSM_KRAIT) += msm-krait-l2-accessors.o #perf_event_msm_krait_l2.o
+
 obj-$(CONFIG_ARCH_MSM7X00A) += irq.o
 obj-$(CONFIG_ARCH_QSD8X50) += sirc.o
 
@@ -14,6 +18,7 @@ obj-$(CONFIG_MSM_PROC_COMM) += proc_comm.o clock-pcom.o vreg.o
 obj-$(CONFIG_MSM_SMD) += smd.o smd_debug.o smd_private.o smd_init_dt.o smsm_debug.o #Updated from 3.10
 obj-$(CONFIG_MSM_SMD) += last_radio_log.o
 obj-$(CONFIG_MSM_SCM) += scm-boot.o
+obj-y += qdsp6v2/
 
 CFLAGS_scm.o :=$(call as-instr,.arch_extension sec,-DREQUIRES_SEC=1)
 
@@ -44,7 +49,6 @@ board-8064-all-objs += board-8064-gpiomux.o #board-8064.o board-8064-pmic.o boar
 obj-$(CONFIG_ARCH_APQ8064) += gpiomux-v2.o gpiomux.o
 obj-$(CONFIG_ARCH_MSM8960) += gpiomux-v2.o gpiomux.o
 obj-$(CONFIG_ARCH_MSM8960) += footswitch-8x60.o
-obj-$(CONFIG_ARCH_MSM_KRAIT) += acpuclock-krait.o msm-krait-l2-accessors.o
 
 obj-$(CONFIG_ARCH_MSM8960) += memory_topology.o
 
@@ -63,5 +67,3 @@ obj-$(CONFIG_MFD_MAX77693) += sec-switch.o
 ifdef CONFIG_SEC_THERMISTOR #TODO ADD CONFIG_SEC_THERMISTOR
 obj-$(CONFIG_SEC_THERMISTOR) += sec_thermistor.o fusion3-thermistor.o
 endif
-
-obj-$(CONFIG_SND_SOC_QDSP6) += qdsp6v2/
