@@ -4,7 +4,8 @@ obj-y += io.o dma.o memory.o
 ifndef CONFIG_ARM_ARCH_TIMER
 obj-y += timer.o
 endif
-obj-$(CONFIG_MSM_VIC) += irq-vic.o
+obj-$(CONFIG_USE_OF) += board-dt.o
+obj-$(CONFIG_DEBUG_FS) += nohlt.o
 
 obj-y += acpuclock.o
 obj-$(CONFIG_ARCH_MSM_KRAIT) += acpuclock-krait.o # This should never be updated
