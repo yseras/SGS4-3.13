@@ -68,3 +68,5 @@ obj-$(CONFIG_MFD_MAX77693) += sec-switch.o
 ifdef CONFIG_SEC_THERMISTOR #TODO ADD CONFIG_SEC_THERMISTOR
 obj-$(CONFIG_SEC_THERMISTOR) += sec_thermistor.o fusion3-thermistor.o
 endif
+
+obj-$(CONFIG_ARCH_RANDOM) += early_random.o
