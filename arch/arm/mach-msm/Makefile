@@ -11,11 +11,6 @@ obj-y += acpuclock.o
 obj-$(CONFIG_ARCH_MSM_KRAIT) += acpuclock-krait.o # This should never be updated
 obj-$(CONFIG_ARCH_MSM_KRAIT) += msm-krait-l2-accessors.o #perf_event_msm_krait_l2.o
 
-obj-$(CONFIG_ARCH_MSM7X00A) += irq.o
-obj-$(CONFIG_ARCH_QSD8X50) += sirc.o
-
-obj-$(CONFIG_MSM_PROC_COMM) += proc_comm.o clock-pcom.o vreg.o
-
 obj-$(CONFIG_MSM_SMD) += smd.o smd_debug.o smd_private.o smd_init_dt.o smsm_debug.o #Updated from 3.10
 obj-$(CONFIG_MSM_SMD) += last_radio_log.o
 obj-$(CONFIG_MSM_SCM) += scm-boot.o
