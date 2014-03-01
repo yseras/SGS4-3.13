@@ -19,7 +19,14 @@
 
 #define MSM_MPM_NR_MPM_IRQS  64
 
-#if defined(CONFIG_MSM_MPM_OF)
+extern struct msm_mpm_device_data msm8660_mpm_dev_data;
+extern struct msm_mpm_device_data msm8960_mpm_dev_data;
+extern struct msm_mpm_device_data msm9615_mpm_dev_data;
+extern struct msm_mpm_device_data apq8064_mpm_dev_data;
+
+void __init msm_mpm_irq_extn_init(struct msm_mpm_device_data *mpm_data);
+
+#if defined(CONFIG_MSM_MPM) || defined(CONFIG_MSM_MPM_OF)
 /**
  * msm_mpm_enable_pin() -  Enable/Disable a MPM pin for idle wakeups.
  *
@@ -140,7 +147,7 @@ static inline bool msm_mpm_irqs_detectable(bool from_idle)
 { return false; }
 static inline bool msm_mpm_gpio_irqs_detectable(bool from_idle)
 { return false; }
-static inline void msm_mpm_enter_sleep(uint32_t sclk_count, bool from_idle,
+static inline void msm_mpm_enter_sleep(uint32_t sclk_count, bool from_idle
 		const struct cpumask *cpumask) {}
 static inline void msm_mpm_exit_sleep(bool from_idle) {}
 static inline void __init of_mpm_init(void) {}

@@ -100,7 +100,7 @@
 #include "msm_watchdog.h"
 #include "board-8064.h"
 #include "spm.h"
-#include <mach/mpm.h>
+#include <linux/irqchip/msm-mpm-irq.h>
 #include "rpm_resources.h"
 #include "pm.h"
 #include "pm-boot.h"
