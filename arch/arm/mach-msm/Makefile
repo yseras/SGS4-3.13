@@ -20,6 +20,7 @@ obj-$(CONFIG_MSM_SMD) += smd.o smd_debug.o smd_private.o smd_init_dt.o smsm_debu
 obj-$(CONFIG_MSM_SMD) += last_radio_log.o
 obj-$(CONFIG_MSM_SCM) += scm-boot.o
 obj-y += qdsp6v2/
+obj-$(CONFIG_PM) += pm-boot.o
 
 CFLAGS_scm.o :=$(call as-instr,.arch_extension sec,-DREQUIRES_SEC=1)
 
@@ -39,7 +40,6 @@ obj-$(CONFIG_ARCH_QSD8X50) += gpiomux-8x50.o
 #
 
 #obj-$(CONFIG_ARCH_MSM_KRAIT) += krait-scm.o
-obj-$(CONFIG_PM) += pm-boot.o
 obj-$(CONFIG_CPU_V7) += idle-v7.o
 
 obj-$(CONFIG_ARCH_APQ8064) += acpuclock.o acpuclock-8064.o
