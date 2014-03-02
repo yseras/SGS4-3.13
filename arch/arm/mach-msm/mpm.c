@@ -134,15 +134,15 @@ static inline uint32_t msm_mpm_read(
 	unsigned int reg, unsigned int subreg_index)
 {
 	unsigned int offset = reg * MSM_MPM_REG_WIDTH + subreg_index;
-	return __raw_readl(msm_mpm_dev_data.mpm_status_reg_base + offset * 4);
+	return __raw_readl(msm_mpm_dev_data.mpm_request_reg_base + offset * 4);
 }
 
 static inline void msm_mpm_write(
 	unsigned int reg, unsigned int subreg_index, uint32_t value)
 {
 	unsigned int offset = reg * MSM_MPM_REG_WIDTH + subreg_index;
-	__raw_writel(value, msm_mpm_dev_data.mpm_request_reg_base + offset * 4);
 
+	__raw_writel(value, msm_mpm_dev_data.mpm_request_reg_base + offset * 4);
 	if (MSM_MPM_DEBUG_WRITE & msm_mpm_debug_mask)
 		pr_info("%s: reg %u.%u: 0x%08x\n",
 			__func__, reg, subreg_index, value);
@@ -153,11 +153,17 @@ static inline void msm_mpm_send_interrupt(void)
 	__raw_writel(msm_mpm_dev_data.mpm_apps_ipc_val,
 			msm_mpm_dev_data.mpm_apps_ipc_reg);
 	/* Ensure the write is complete before returning. */
-	mb();
+	wmb();
 }
 
 static irqreturn_t msm_mpm_irq(int irq, void *dev_id)
 {
+	/*
+	 * When the system resumes from deep sleep mode, the RPM hardware wakes
+	 * up the Apps processor by triggering this interrupt. This interrupt
+	 * has to be enabled and set as wake for the irq to get SPM out of
+	 * sleep. Handle the interrupt here to make sure that it gets cleared.
+	 */
 	return IRQ_HANDLED;
 }
 
@@ -318,7 +324,6 @@ static int msm_mpm_set_irq_type_exclusive(
 		else
 			msm_mpm_polarity[index] &= ~mask;
 	}
-
 	return 0;
 }
 
@@ -326,6 +331,9 @@ static int __msm_mpm_enable_irq(unsigned int irq, unsigned int enable)
 {
 	unsigned long flags;
 	int rc;
+
+	if (!msm_mpm_is_initialized())
+		return -EINVAL;
 
 	spin_lock_irqsave(&msm_mpm_lock, flags);
 	rc = msm_mpm_enable_irq_exclusive(irq, (bool)enable, false);
@@ -349,6 +357,9 @@ static int msm_mpm_set_irq_wake(struct irq_data *d, unsigned int on)
 	unsigned long flags;
 	int rc;
 
+	if (!msm_mpm_is_initialized())
+		return -EINVAL;
+
 	spin_lock_irqsave(&msm_mpm_lock, flags);
 	rc = msm_mpm_enable_irq_exclusive(d->irq, (bool)on, true);
 	spin_unlock_irqrestore(&msm_mpm_lock, flags);
@@ -360,6 +371,9 @@ static int msm_mpm_set_irq_type(struct irq_data *d, unsigned int flow_type)
 {
 	unsigned long flags;
 	int rc;
+
+	if (!msm_mpm_is_initialized())
+		return -EINVAL;
 
 	spin_lock_irqsave(&msm_mpm_lock, flags);
 	rc = msm_mpm_set_irq_type_exclusive(d->irq, flow_type);
@@ -377,6 +391,12 @@ int msm_mpm_enable_pin(unsigned int pin, unsigned int enable)
 	uint32_t mask = MSM_MPM_IRQ_MASK(pin);
 	unsigned long flags;
 
+	if (!msm_mpm_is_initialized())
+		return -EINVAL;
+
+	if (pin >= MSM_MPM_NR_MPM_IRQS)
+		return -EINVAL;
+
 	spin_lock_irqsave(&msm_mpm_lock, flags);
 
 	if (enable)
@@ -393,6 +413,12 @@ int msm_mpm_set_pin_wake(unsigned int pin, unsigned int on)
 	uint32_t index = MSM_MPM_IRQ_INDEX(pin);
 	uint32_t mask = MSM_MPM_IRQ_MASK(pin);
 	unsigned long flags;
+
+	if (!msm_mpm_is_initialized())
+		return -EINVAL;
+
+	if (pin >= MSM_MPM_NR_MPM_IRQS)
+		return -EINVAL;
 
 	spin_lock_irqsave(&msm_mpm_lock, flags);
 
