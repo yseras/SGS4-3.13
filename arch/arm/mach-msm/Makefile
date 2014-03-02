@@ -48,6 +48,8 @@ obj-$(CONFIG_ARCH_MSM8960) += footswitch-8x60.o
 
 obj-$(CONFIG_ARCH_MSM8960) += memory_topology.o
 
+obj-$(CONFIG_MSM_PM) += msm-pm.o pm-data.o lpm_levels.o
+
 obj-$(CONFIG_MACH_JF) += board-fusion3-battery.o
 obj-$(CONFIG_MACH_JF_TMO) += board-jf_tmo.o board-jf_tmo-gpiomux.o
 
