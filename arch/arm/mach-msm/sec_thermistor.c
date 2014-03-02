@@ -196,7 +196,8 @@ static void sec_therm_polling_work(struct work_struct *work)
 	}
 
 out:
-	schedule_delayed_work(&info->polling_work,
+	queue_delayed_work(system_power_efficient_wq, 
+			&info->polling_work,
 			msecs_to_jiffies(info->pdata->polling_interval));
 }
 
@@ -226,9 +227,10 @@ static __devinit int sec_therm_probe(struct platform_device *pdev)
 
 	if (!(pdata->no_polling)) {
 
-		INIT_DELAYED_WORK_DEFERRABLE(&info->polling_work,
+		INIT_DEFERRABLE_WORK(&info->polling_work,
 			sec_therm_polling_work);
-		schedule_delayed_work(&info->polling_work,
+		queue_delayed_work(system_power_efficient_wq,
+			&info->polling_work,
 			msecs_to_jiffies(info->pdata->polling_interval));
 
 	}
@@ -267,7 +269,8 @@ static int sec_therm_resume(struct device *dev)
 	struct sec_therm_info *info = dev_get_drvdata(dev);
 
 	if (!(info->pdata->no_polling))
-		schedule_delayed_work(&info->polling_work,
+		queue_delayed_work(system_power_efficient_wq,
+			&info->polling_work,
 			msecs_to_jiffies(info->pdata->polling_interval));
 	return 0;
 }

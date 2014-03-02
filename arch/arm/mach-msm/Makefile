@@ -62,7 +62,7 @@ obj-$(CONFIG_MSM_NATIVE_RESTART) += restart.o
 
 obj-$(CONFIG_MFD_MAX77693) += sec-switch.o
 
-ifdef CONFIG_SEC_THERMISTOR #TODO ADD CONFIG_SEC_THERMISTOR
+ifdef CONFIG_SEC_THERMISTOR
 obj-$(CONFIG_SEC_THERMISTOR) += sec_thermistor.o fusion3-thermistor.o
 endif
 obj-$(CONFIG_CPU_FREQ_MSM) += cpufreq.o

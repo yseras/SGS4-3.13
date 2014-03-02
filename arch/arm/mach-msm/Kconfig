@@ -296,4 +296,11 @@ config MSM_L2_SPM
 
 config MSM_SCM
 	bool
+
+config SEC_THERMISTOR
+	bool "Use external thermistor near AP for checking temprature"
+	default n
+	help
+	Use thermistor driver for checking temperature near AP chip.
+
 endif
