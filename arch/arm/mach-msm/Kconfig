@@ -124,6 +124,14 @@ config  ARCH_MSM_SCORPION
 config  MSM_VIC
 	bool
 
+config MSM_MPM
+	bool "Modem Power Manager"
+	help
+	  MPM is a dedicated hardware resource responsible for entering and
+	  waking up from a system wide low power mode. The MPM driver tracks
+	  the wakeup interrupts and configures the MPM to monitor the wakeup
+	  interrupts when going to a system wide sleep mode.
+
 menu "Qualcomm MSM Board Type"
 	depends on !ARCH_MSM_DT
 

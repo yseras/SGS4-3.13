@@ -401,6 +401,20 @@ static cycle_t arch_counter_read_cc(const struct cyclecounter *cc)
 	return arch_timer_read_counter();
 }
 
+u64 arch_counter_get_cntpct(void)
+{
+	if (arch_timer_read_counter == arch_counter_get_cntvct)
+		return arch_counter_get_cntpct();
+	else
+		return arch_counter_get_cntpct_mem();
+}
+EXPORT_SYMBOL(arch_counter_get_cntpct);
+
+u64 arch_counter_get_cntvct(void)
+{
+	return arch_timer_read_counter();
+}
+
 static struct clocksource clocksource_counter = {
 	.name	= "arch_sys_counter",
 	.rating	= 400,
