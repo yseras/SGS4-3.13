@@ -64,7 +64,108 @@ char *memtype_name[] = {
 	"EBI1"
 };
 
-struct reserve_info *reserve_info; // Note to self: do not remove.
+struct reserve_info *reserve_info;
+
+/**
+ * calculate_reserve_limits() - calculate reserve limits for all
+ * memtypes
+ *
+ * for each memtype in the reserve_info->memtype_reserve_table, sets
+ * the `limit' field to the largest size of any memblock of that
+ * memtype.
+ */
+static void __init calculate_reserve_limits(void)
+{
+	struct memblock_region *mr;
+	int memtype;
+	struct memtype_reserve *mt;
+
+	for_each_memblock(memory, mr) {
+		memtype = reserve_info->paddr_to_memtype(mr->base);
+		if (memtype == MEMTYPE_NONE) {
+			pr_warning("unknown memory type for region at %lx\n",
+				(long unsigned int)mr->base);
+			continue;
+		}
+		mt = &reserve_info->memtype_reserve_table[memtype];
+		mt->limit = max_t(unsigned long, mt->limit, mr->size);
+	}
+}
+
+static void __init adjust_reserve_sizes(void)
+{
+	int i;
+	struct memtype_reserve *mt;
+
+	mt = &reserve_info->memtype_reserve_table[0];
+	for (i = 0; i < MEMTYPE_MAX; i++, mt++) {
+		if (mt->flags & MEMTYPE_FLAGS_1M_ALIGN)
+			mt->size = (mt->size + SECTION_SIZE - 1) & SECTION_MASK;
+		if (mt->size > mt->limit) {
+			pr_warning("%lx size for %s too large, setting to %lx\n",
+				mt->size, memtype_name[i], mt->limit);
+			mt->size = mt->limit;
+		}
+	}
+}
+
+static void __init reserve_memory_for_mempools(void)
+{
+	int memtype;
+	struct memtype_reserve *mt;
+	phys_addr_t alignment;
+
+	mt = &reserve_info->memtype_reserve_table[0];
+	for (memtype = 0; memtype < MEMTYPE_MAX; memtype++, mt++) {
+		if (mt->flags & MEMTYPE_FLAGS_FIXED || !mt->size)
+			continue;
+		alignment = (mt->flags & MEMTYPE_FLAGS_1M_ALIGN) ?
+			SZ_1M : PAGE_SIZE;
+		mt->start = arm_memblock_steal(mt->size, alignment);
+		BUG_ON(!mt->start);
+	}
+}
+
+static void __init initialize_mempools(void)
+{
+	struct mem_pool *mpool;
+	int memtype;
+	struct memtype_reserve *mt;
+
+	mt = &reserve_info->memtype_reserve_table[0];
+	for (memtype = 0; memtype < MEMTYPE_MAX; memtype++, mt++) {
+		if (!mt->size)
+			continue;
+		mpool = initialize_memory_pool(mt->start, mt->size, memtype);
+		if (!mpool)
+			pr_warning("failed to create %s mempool\n",
+				memtype_name[memtype]);
+	}
+}
+
+#define  MAX_FIXED_AREA_SIZE 0x11000000
+
+void __init msm_reserve(void)
+{
+	unsigned long msm_fixed_area_size;
+	unsigned long msm_fixed_area_start;
+
+	memory_pool_init();
+	reserve_info->calculate_reserve_sizes();
+
+	msm_fixed_area_size = reserve_info->fixed_area_size;
+	msm_fixed_area_start = reserve_info->fixed_area_start;
+	if (msm_fixed_area_size)
+		if (msm_fixed_area_start > reserve_info->low_unstable_address
+			- MAX_FIXED_AREA_SIZE)
+			reserve_info->low_unstable_address =
+			msm_fixed_area_start;
+
+	calculate_reserve_limits();
+	adjust_reserve_sizes();
+	reserve_memory_for_mempools();
+	initialize_mempools();
+}
 
 static int get_ebi_memtype(void)
 {
