@@ -1310,6 +1310,8 @@ static int msm_routing_ext_ec_put(struct snd_kcontrol *kcontrol,
 	struct snd_soc_dapm_widget *widget = wlist->widgets[0];
 	int mux = ucontrol->value.enumerated.item[0];
 	struct soc_enum *e = (struct soc_enum *)kcontrol->private_value;
+	struct snd_soc_dapm_context *dapm = widget->dapm;
+	struct snd_soc_dapm_update *update = dapm->card->update;
 	int ret = 0;
 
 	pr_debug("%s: msm_route_ec_ref_rx = %d value = %ld\n",
@@ -1327,7 +1329,7 @@ static int msm_routing_ext_ec_put(struct snd_kcontrol *kcontrol,
 		ret = voc_set_ext_ec_ref(msm_route_ext_ec_ref, false);
 		break;
 	}
-	snd_soc_dapm_mux_update_power(widget, kcontrol, 1, mux, e);
+	snd_soc_dapm_mux_update_power(dapm, kcontrol, mux, e, update);
 	mutex_unlock(&routing_lock);
 	return ret;
 }
