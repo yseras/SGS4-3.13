@@ -69,3 +69,4 @@ endif
 obj-$(CONFIG_CPU_FREQ_MSM) += cpufreq.o
 
 obj-$(CONFIG_ARCH_RANDOM) += early_random.o
+obj-$(CONFIG_OF) += ../../../drivers/clk/clk.o
