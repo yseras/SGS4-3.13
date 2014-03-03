@@ -53,6 +53,7 @@ obj-$(CONFIG_MSM_PM) += msm-pm.o pm-data.o lpm_levels.o
 obj-$(CONFIG_MACH_JF) += board-fusion3-battery.o
 obj-$(CONFIG_MACH_JF_TMO) += board-jf_tmo.o board-jf_tmo-gpiomux.o
 
+obj-$(CONFIG_MSM_RPM_SMD) += rpm-smd.o
 obj-$(CONFIG_MSM_MPM) += mpm.o
 obj-$(CONFIG_MSM_BUS_SCALING) += msm_bus/
 obj-$(CONFIG_MSM_SPM_V2) += spm-v2.o spm_devices.o
