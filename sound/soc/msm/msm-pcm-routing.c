@@ -1048,7 +1048,7 @@ done:
 static int msm_routing_get_eq_enable_mixer(struct snd_kcontrol *kcontrol,
 				struct snd_ctl_elem_value *ucontrol)
 {
-	int eq_idx = ((struct soc_multi_mixer_control *)
+	int eq_idx = ((struct soc_mixer_control *)
 					kcontrol->private_value)->reg;
 
 	ucontrol->value.integer.value[0] = eq_data[eq_idx].enable;
@@ -1061,7 +1061,7 @@ static int msm_routing_get_eq_enable_mixer(struct snd_kcontrol *kcontrol,
 static int msm_routing_put_eq_enable_mixer(struct snd_kcontrol *kcontrol,
 				struct snd_ctl_elem_value *ucontrol)
 {
-	int eq_idx = ((struct soc_multi_mixer_control *)
+	int eq_idx = ((struct soc_mixer_control *)
 					kcontrol->private_value)->reg;
 	int value = ucontrol->value.integer.value[0];
 
@@ -1077,7 +1077,7 @@ static int msm_routing_get_eq_band_count_audio_mixer(
 					struct snd_kcontrol *kcontrol,
 					struct snd_ctl_elem_value *ucontrol)
 {
-	int eq_idx = ((struct soc_multi_mixer_control *)
+	int eq_idx = ((struct soc_mixer_control *)
 					kcontrol->private_value)->reg;
 
 	ucontrol->value.integer.value[0] = eq_data[eq_idx].num_bands;
@@ -1091,7 +1091,7 @@ static int msm_routing_put_eq_band_count_audio_mixer(
 					struct snd_kcontrol *kcontrol,
 					struct snd_ctl_elem_value *ucontrol)
 {
-	int eq_idx = ((struct soc_multi_mixer_control *)
+	int eq_idx = ((struct soc_mixer_control *)
 					kcontrol->private_value)->reg;
 	int value = ucontrol->value.integer.value[0];
 
@@ -1104,9 +1104,9 @@ static int msm_routing_put_eq_band_count_audio_mixer(
 static int msm_routing_get_eq_band_audio_mixer(struct snd_kcontrol *kcontrol,
 					struct snd_ctl_elem_value *ucontrol)
 {
-	int eq_idx = ((struct soc_multi_mixer_control *)
+	int eq_idx = ((struct soc_mixer_control *)
 					kcontrol->private_value)->reg;
-	int band_idx = ((struct soc_multi_mixer_control *)
+	int band_idx = ((struct soc_mixer_control *)
 					kcontrol->private_value)->shift;
 
 	ucontrol->value.integer.value[0] =
@@ -1136,9 +1136,9 @@ static int msm_routing_get_eq_band_audio_mixer(struct snd_kcontrol *kcontrol,
 static int msm_routing_put_eq_band_audio_mixer(struct snd_kcontrol *kcontrol,
 					struct snd_ctl_elem_value *ucontrol)
 {
-	int eq_idx = ((struct soc_multi_mixer_control *)
+	int eq_idx = ((struct soc_mixer_control *)
 					kcontrol->private_value)->reg;
-	int band_idx = ((struct soc_multi_mixer_control *)
+	int band_idx = ((struct soc_mixer_control *)
 					kcontrol->private_value)->shift;
 
 	eq_data[eq_idx].eq_bands[band_idx].band_idx =
