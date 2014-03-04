@@ -73,17 +73,6 @@ enum {
 #define SCLK_HZ (32768)
 #define ARCH_TIMER_HZ (19200000)
 
-struct msm_mpm_device_data {
-	uint16_t *irqs_m2a;
-	unsigned int irqs_m2a_size;
-	uint16_t *bypassed_apps_irqs;
-	unsigned int bypassed_apps_irqs_size;
-	void __iomem *mpm_request_reg_base;
-	void __iomem *mpm_status_reg_base;
-	void __iomem *mpm_apps_ipc_reg;
-	unsigned int mpm_apps_ipc_val;
-	unsigned int mpm_ipc_irq;
-};
 static struct msm_mpm_device_data msm_mpm_dev_data;
 static uint8_t msm_mpm_irqs_a2m[MSM_MPM_NR_APPS_IRQS];
 
