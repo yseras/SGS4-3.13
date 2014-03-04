@@ -55,7 +55,7 @@
 #include "pm.h"
 
 #ifdef CONFIG_MSM_MPM
-#include <mach/mpm.h>
+#include <linux/irqchip/msm-mpm-irq.h>
 #endif
 #ifdef CONFIG_MSM_DSPS
 #include <mach/msm_dsps.h>
