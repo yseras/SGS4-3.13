@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -14,9 +14,9 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/types.h>
+#include <linux/init.h>
 #include <linux/bitmap.h>
 #include <linux/bitops.h>
-#include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/io.h>
 #include <linux/irq.h>
@@ -50,7 +50,6 @@ module_param_named(
 
 enum {
 	MSM_MPM_REQUEST_REG_ENABLE,
-	MSM_MPM_REQUEST_REG_DETECT_CTL,
 	MSM_MPM_REQUEST_REG_POLARITY,
 	MSM_MPM_REQUEST_REG_CLEAR,
 };
@@ -58,10 +57,6 @@ enum {
 enum {
 	MSM_MPM_STATUS_REG_PENDING,
 };
-
-/******************************************************************************
- * IRQ Mapping Definitions
- *****************************************************************************/
 
 #define MSM_MPM_NR_APPS_IRQS  (NR_MSM_IRQS + NR_GPIO_IRQS)
 
@@ -76,8 +71,6 @@ enum {
 static struct msm_mpm_device_data msm_mpm_dev_data;
 static uint8_t msm_mpm_irqs_a2m[MSM_MPM_NR_APPS_IRQS];
 
-static DEFINE_SPINLOCK(msm_mpm_lock);
-
 enum mpm_reg_offsets {
 	MSM_MPM_REG_WAKEUP,
 	MSM_MPM_REG_ENABLE,
@@ -86,6 +79,8 @@ enum mpm_reg_offsets {
 	MSM_MPM_REG_POLARITY,
 	MSM_MPM_REG_STATUS,
 };
+
+static DEFINE_SPINLOCK(msm_mpm_lock);
 
 /*
  * Note: the following two bitmaps only mark irqs that are _not_
@@ -98,26 +93,9 @@ static DECLARE_BITMAP(msm_mpm_gpio_irqs_mask, MSM_MPM_NR_APPS_IRQS);
 
 static uint32_t msm_mpm_enabled_irq[MSM_MPM_REG_WIDTH];
 static uint32_t msm_mpm_wake_irq[MSM_MPM_REG_WIDTH];
-static uint32_t msm_mpm_detect_ctl[MSM_MPM_REG_WIDTH];
 static uint32_t msm_mpm_falling_edge[MSM_MPM_REG_WIDTH];
 static uint32_t msm_mpm_rising_edge[MSM_MPM_REG_WIDTH];
 static uint32_t msm_mpm_polarity[MSM_MPM_REG_WIDTH];
-
-
-
-enum mpm_state {
-	MSM_MPM_IRQ_MAPPING_DONE = BIT(0),
-	MSM_MPM_DEVICE_PROBED = BIT(1),
-};
-
-static enum mpm_state msm_mpm_initialized;
-
-static inline bool msm_mpm_is_initialized(void)
-{
-	return msm_mpm_initialized &
-		(MSM_MPM_IRQ_MAPPING_DONE | MSM_MPM_DEVICE_PROBED);
-
-}
 
 static inline uint32_t msm_mpm_read(
 	unsigned int reg, unsigned int subreg_index)
@@ -284,10 +262,32 @@ static int msm_mpm_enable_irq_exclusive(
 	return 0;
 }
 
+static void msm_mpm_set_edge_ctl(int pin, unsigned int flow_type)
+{
+	uint32_t index;
+	uint32_t mask;
+
+	index = MSM_MPM_IRQ_INDEX(pin);
+	mask = MSM_MPM_IRQ_MASK(pin);
+
+	if (flow_type & IRQ_TYPE_EDGE_FALLING)
+		msm_mpm_falling_edge[index] |= mask;
+	else
+		msm_mpm_falling_edge[index] &= ~mask;
+
+	if (flow_type & IRQ_TYPE_EDGE_RISING)
+		msm_mpm_rising_edge[index] |= mask;
+	else
+		msm_mpm_rising_edge[index] &= ~mask;
+
+}
+
 static int msm_mpm_set_irq_type_exclusive(
 	unsigned int irq, unsigned int flow_type)
 {
 	uint32_t mpm_irq;
+
+	mpm_irq = msm_mpm_get_irq_a2m(irq);
 
 	if (!msm_mpm_is_valid_apps_irq(irq))
 		return -EINVAL;
@@ -295,7 +295,6 @@ static int msm_mpm_set_irq_type_exclusive(
 	if (msm_mpm_bypass_apps_irq(irq))
 		return 0;
 
-	mpm_irq = msm_mpm_get_irq_a2m(irq);
 	if (mpm_irq) {
 		uint32_t index = MSM_MPM_IRQ_INDEX(mpm_irq);
 		uint32_t mask = MSM_MPM_IRQ_MASK(mpm_irq);
@@ -303,12 +302,9 @@ static int msm_mpm_set_irq_type_exclusive(
 		if (index >= MSM_MPM_REG_WIDTH)
 			return -EFAULT;
 
-		if (flow_type & IRQ_TYPE_EDGE_BOTH)
-			msm_mpm_detect_ctl[index] |= mask;
-		else
-			msm_mpm_detect_ctl[index] &= ~mask;
+		msm_mpm_set_edge_ctl(mpm_irq, flow_type);
 
-		if (flow_type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_LEVEL_HIGH))
+		if (flow_type &  IRQ_TYPE_LEVEL_HIGH)
 			msm_mpm_polarity[index] |= mask;
 		else
 			msm_mpm_polarity[index] &= ~mask;
@@ -320,9 +316,6 @@ static int __msm_mpm_enable_irq(unsigned int irq, unsigned int enable)
 {
 	unsigned long flags;
 	int rc;
-
-	if (!msm_mpm_is_initialized())
-		return -EINVAL;
 
 	spin_lock_irqsave(&msm_mpm_lock, flags);
 	rc = msm_mpm_enable_irq_exclusive(irq, (bool)enable, false);
@@ -346,9 +339,6 @@ static int msm_mpm_set_irq_wake(struct irq_data *d, unsigned int on)
 	unsigned long flags;
 	int rc;
 
-	if (!msm_mpm_is_initialized())
-		return -EINVAL;
-
 	spin_lock_irqsave(&msm_mpm_lock, flags);
 	rc = msm_mpm_enable_irq_exclusive(d->irq, (bool)on, true);
 	spin_unlock_irqrestore(&msm_mpm_lock, flags);
@@ -360,9 +350,6 @@ static int msm_mpm_set_irq_type(struct irq_data *d, unsigned int flow_type)
 {
 	unsigned long flags;
 	int rc;
-
-	if (!msm_mpm_is_initialized())
-		return -EINVAL;
 
 	spin_lock_irqsave(&msm_mpm_lock, flags);
 	rc = msm_mpm_set_irq_type_exclusive(d->irq, flow_type);
@@ -380,12 +367,6 @@ int msm_mpm_enable_pin(unsigned int pin, unsigned int enable)
 	uint32_t mask = MSM_MPM_IRQ_MASK(pin);
 	unsigned long flags;
 
-	if (!msm_mpm_is_initialized())
-		return -EINVAL;
-
-	if (pin >= MSM_MPM_NR_MPM_IRQS)
-		return -EINVAL;
-
 	spin_lock_irqsave(&msm_mpm_lock, flags);
 
 	if (enable)
@@ -402,12 +383,6 @@ int msm_mpm_set_pin_wake(unsigned int pin, unsigned int on)
 	uint32_t index = MSM_MPM_IRQ_INDEX(pin);
 	uint32_t mask = MSM_MPM_IRQ_MASK(pin);
 	unsigned long flags;
-
-	if (!msm_mpm_is_initialized())
-		return -EINVAL;
-
-	if (pin >= MSM_MPM_NR_MPM_IRQS)
-		return -EINVAL;
 
 	spin_lock_irqsave(&msm_mpm_lock, flags);
 
@@ -428,12 +403,9 @@ int msm_mpm_set_pin_type(unsigned int pin, unsigned int flow_type)
 
 	spin_lock_irqsave(&msm_mpm_lock, flags);
 
-	if (flow_type & IRQ_TYPE_EDGE_BOTH)
-		msm_mpm_detect_ctl[index] |= mask;
-	else
-		msm_mpm_detect_ctl[index] &= ~mask;
+	msm_mpm_set_edge_ctl(pin, flow_type);
 
-	if (flow_type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_LEVEL_HIGH))
+	if (flow_type & IRQ_TYPE_LEVEL_HIGH)
 		msm_mpm_polarity[index] |= mask;
 	else
 		msm_mpm_polarity[index] &= ~mask;
@@ -484,11 +456,6 @@ void msm_mpm_enter_sleep(uint32_t sclk_count, bool from_idle,
 {
 	cycle_t wakeup = (u64)sclk_count * ARCH_TIMER_HZ;
 
-	if (!msm_mpm_is_initialized()) {
-		pr_err("%s(): MPM not initialized\n", __func__);
-		return;
-	}
-
 	if (sclk_count) {
 		do_div(wakeup, SCLK_HZ);
 		wakeup += arch_counter_get_cntpct();
@@ -506,11 +473,6 @@ void msm_mpm_exit_sleep(bool from_idle)
 	unsigned long pending;
 	int i;
 	int k;
-
-	if (!msm_mpm_is_initialized()) {
-		pr_err("%s(): MPM not initialized\n", __func__);
-		return;
-	}
 
 	for (i = 0; i < MSM_MPM_REG_WIDTH; i++) {
 		pending = msm_mpm_read(MSM_MPM_REG_STATUS, i);
