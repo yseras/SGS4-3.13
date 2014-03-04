@@ -2626,7 +2626,7 @@ static char *master_names[] = {
 
 static struct msm_rpm_master_stats_platform_data msm_rpm_master_stat_pdata = {
 	.masters = master_names,
-	.nomasters = ARRAY_SIZE(master_names),
+	.num_masters = ARRAY_SIZE(master_names),
 };
 
 struct platform_device apq8064_rpm_master_stat_device = {
