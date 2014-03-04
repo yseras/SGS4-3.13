@@ -25,11 +25,9 @@
 #include <linux/percpu.h>
 #include <linux/mm.h>
 
-#include <asm/localtimer.h>
 #include <asm/mach/time.h>
 #include <asm/sched_clock.h>
 #include <asm/smp_plat.h>
-#include <asm/user_accessible_timer.h>
 #include <mach/msm_iomap.h>
 #include <mach/irqs.h>
 #include <soc/qcom/socinfo.h>
@@ -888,56 +886,6 @@ static void __init msm_sched_clock_init(void)
 	setup_sched_clock(msm_read_sched_clock, 32 - clock->shift, clock->freq);
 }
 
-#ifdef CONFIG_LOCAL_TIMERS
-int __cpuinit local_timer_setup(struct clock_event_device *evt)
-{
-	static DEFINE_PER_CPU(bool, first_boot) = true;
-	struct msm_clock *clock = &msm_clocks[msm_global_timer];
-
-	/* Use existing clock_event for cpu 0 */
-	if (!smp_processor_id())
-		return 0;
-
-	if (cpu_is_msm8x60() || soc_class_is_msm8960() ||
-	    soc_class_is_apq8064() || soc_class_is_msm8930())
-		__raw_writel(DGT_CLK_CTL_DIV_4, MSM_TMR_BASE + DGT_CLK_CTL);
-
-	if (__get_cpu_var(first_boot)) {
-		__raw_writel(0, clock->regbase  + TIMER_ENABLE);
-		__raw_writel(0, clock->regbase + TIMER_CLEAR);
-		__raw_writel(~0, clock->regbase + TIMER_MATCH_VAL);
-		__get_cpu_var(first_boot) = false;
-		if (clock->status_mask)
-			while (__raw_readl(MSM_TMR_BASE + TIMER_STATUS) &
-			       clock->status_mask)
-				;
-	}
-	evt->irq = clock->irq;
-	evt->name = "local_timer";
-	evt->features = CLOCK_EVT_FEAT_ONESHOT;
-	evt->rating = clock->clockevent.rating;
-	evt->set_mode = msm_timer_set_mode;
-	evt->set_next_event = msm_timer_set_next_event;
-
-	*__this_cpu_ptr(clock->percpu_evt) = evt;
-	clockevents_config_and_register(evt, gpt_hz, 4, 0xf0000000);
-	enable_percpu_irq(evt->irq, IRQ_TYPE_EDGE_RISING);
-
-	return 0;
-}
-
-void local_timer_stop(struct clock_event_device *evt)
-{
-	evt->set_mode(CLOCK_EVT_MODE_UNUSED, evt);
-	disable_percpu_irq(evt->irq);
-}
-
-static struct local_timer_ops msm_lt_ops = {
-	local_timer_setup,
-	local_timer_stop,
-};
-#endif /* CONFIG_LOCAL_TIMERS */
-
 #ifdef CONFIG_ARCH_MSM8625
 static void fixup_msm8625_timer(void)
 {
@@ -1109,8 +1057,4 @@ void __init msm_timer_init(void)
 		msm_delay_timer.read_current_timer = &msm_read_current_timer;
 		register_current_timer_delay(&msm_delay_timer);
 	}
-
-#ifdef CONFIG_LOCAL_TIMERS
-	local_timer_register(&msm_lt_ops);
-#endif
 }
