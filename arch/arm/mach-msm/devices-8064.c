@@ -15,7 +15,7 @@
 #include <linux/list.h>
 #include <linux/platform_device.h>
 #include <linux/msm_rotator.h>
-#include <linux/gpio.h>
+#include <mach/gpio.h>
 #include <linux/clkdev.h>
 #include <linux/dma-mapping.h>
 #include <linux/coresight.h>
@@ -45,7 +45,7 @@
 #include "msm_watchdog.h"
 #include "rpm_stats.h"
 #include "rpm_log.h"
-#include <mach/mpm.h>
+#include <linux/irqchip/msm-mpm-irq.h>
 #include <mach/iommu_domains.h>
 #include <mach/msm_cache_dump.h>
 
