@@ -48,6 +48,7 @@
 #include <linux/irqchip/msm-mpm-irq.h>
 #include <mach/iommu_domains.h>
 #include <mach/msm_cache_dump.h>
+#include <mach/msm_memtypes.h>
 
 /* Address of GSBI blocks */
 #define MSM_GSBI1_PHYS		0x12440000
