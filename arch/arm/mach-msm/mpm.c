@@ -20,17 +20,24 @@
 #include <linux/interrupt.h>
 #include <linux/io.h>
 #include <linux/irq.h>
+#include <linux/irqdomain.h>
+#include <linux/list.h>
+#include <linux/platform_device.h>
+#include <linux/of.h>
+#include <linux/of_address.h>
 #include <linux/slab.h>
 #include <linux/spinlock.h>
+#include <linux/clk.h>
+#include <linux/err.h>
+#include <linux/power_supply.h>
+#include <linux/regulator/consumer.h>
+#include <linux/regulator/rpm-smd-regulator.h>
+#include <linux/workqueue.h>
 #include <linux/irqchip/arm-gic.h>
-#include <mach/msm_iomap.h>
+#include <linux/clk/msm-clk.h>
 #include <linux/irqchip/msm-gpio-irq.h>
 #include <linux/irqchip/msm-mpm-irq.h>
 #include <asm/arch_timer.h>
-
-/******************************************************************************
- * Debug Definitions
- *****************************************************************************/
 
 enum {
 	MSM_MPM_DEBUG_NON_DETECTABLE_IRQ = BIT(0),
@@ -50,12 +57,7 @@ module_param_named(
 
 enum {
 	MSM_MPM_REQUEST_REG_ENABLE,
-	MSM_MPM_REQUEST_REG_POLARITY,
 	MSM_MPM_REQUEST_REG_CLEAR,
-};
-
-enum {
-	MSM_MPM_STATUS_REG_PENDING,
 };
 
 #define MSM_MPM_NR_APPS_IRQS  (NR_MSM_IRQS + NR_GPIO_IRQS)
@@ -70,6 +72,10 @@ enum {
 
 static struct msm_mpm_device_data msm_mpm_dev_data;
 static uint8_t msm_mpm_irqs_a2m[MSM_MPM_NR_APPS_IRQS];
+
+static struct clk *xo_clk;
+static bool xo_enabled;
+static bool msm_mpm_in_suspend;
 
 enum mpm_reg_offsets {
 	MSM_MPM_REG_WAKEUP,
@@ -182,7 +188,7 @@ static void msm_mpm_clear(void)
 	}
 
 	/* Ensure the clear is complete before sending the interrupt */
-	mb();
+	wmb();
 	msm_mpm_send_interrupt();
 }
 
@@ -500,9 +506,58 @@ void msm_mpm_exit_sleep(bool from_idle)
 			k = find_next_bit(&pending, 32, k + 1);
 		}
 	}
-
 	msm_mpm_clear();
 }
+static void msm_mpm_sys_low_power_modes(bool allow)
+{
+	if (allow) {
+		if (xo_enabled) {
+			clk_disable_unprepare(xo_clk);
+			xo_enabled = false;
+		}
+	} else {
+		if (!xo_enabled) {
+			/* If we cannot enable XO clock then we want to flag it,
+			 * than having to deal with not being able to wakeup
+			 * from a non-monitorable interrupt
+			 */
+			BUG_ON(clk_prepare_enable(xo_clk));
+			xo_enabled = true;
+		}
+	}
+}
+
+void msm_mpm_suspend_prepare(void)
+{
+	bool allow;
+	unsigned long flags;
+
+	spin_lock_irqsave(&msm_mpm_lock, flags);
+
+	allow = msm_mpm_irqs_detectable(false) &&
+		msm_mpm_gpio_irqs_detectable(false);
+	msm_mpm_in_suspend = true;
+
+	spin_unlock_irqrestore(&msm_mpm_lock, flags);
+	msm_mpm_sys_low_power_modes(allow);
+}
+EXPORT_SYMBOL(msm_mpm_suspend_prepare);
+
+void msm_mpm_suspend_wake(void)
+{
+	bool allow;
+	unsigned long flags;
+
+	spin_lock_irqsave(&msm_mpm_lock, flags);
+
+	allow = msm_mpm_irqs_detectable(true) &&
+		msm_mpm_gpio_irqs_detectable(true);
+
+	spin_unlock_irqrestore(&msm_mpm_lock, flags);
+	msm_mpm_sys_low_power_modes(allow);
+	msm_mpm_in_suspend = false;
+}
+EXPORT_SYMBOL(msm_mpm_suspend_wake);
 
 static int __init msm_mpm_early_init(void)
 {
