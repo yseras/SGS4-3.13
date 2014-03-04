@@ -164,7 +164,7 @@ static inline void msm_mpm_enter_sleep(uint32_t sclk_count, bool from_idle
 static inline void msm_mpm_exit_sleep(bool from_idle) {}
 static inline void __init of_mpm_init(void) {}
 #endif
-#ifdef CONFIG_MSM_MPM_OF
+#if defined(CONFIG_MSM_MPM) || defined(CONFIG_MSM_MPM_OF)
 /** msm_mpm_suspend_prepare() - Called at prepare_late() op during suspend
  *
  *
