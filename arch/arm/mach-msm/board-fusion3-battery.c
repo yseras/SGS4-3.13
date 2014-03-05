@@ -21,7 +21,7 @@
 #include <linux/mfd/pm8xxx/pm8xxx-adc.h>
 
 #include <mach/board.h>
-#include <mach/gpio.h>
+#include <linux/gpio.h>
 #include <mach/apq8064-gpio.h>
 
 #include "devices-msm8x60.h"

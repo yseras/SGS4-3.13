@@ -23,7 +23,7 @@
 #include <linux/mfd/wcd9xxx/core.h>
 #include <linux/mfd/wcd9xxx/pdata.h>
 #include <linux/mfd/pm8xxx/misc.h>
-#include <linux/ssbi.h> // was linux/msm_ssbi.h
+#include <linux/ssbi.h>
 #include <linux/spi/spi.h>
 #include <linux/dma-contiguous.h>
 #include <linux/dma-mapping.h>
@@ -63,7 +63,7 @@
 #include <mach/msm_spi.h>
 #include "timer.h"
 #include "devices.h"
-#include <mach/gpio.h>
+#include <linux/gpio.h>
 #include <mach/gpiomux.h>
 #include <mach/rpm.h>
 #ifdef CONFIG_ANDROID_PMEM
@@ -95,7 +95,7 @@
 #endif
 
 #include <linux/persistent_ram.h>
-/*#include <linux/platform_data/ram_console.h>*/
+//#include <linux/platform_data/ram_console.h>
 
 #include "msm_watchdog.h"
 #include "board-8064.h"
