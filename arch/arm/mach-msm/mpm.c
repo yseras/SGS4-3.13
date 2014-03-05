@@ -178,20 +178,6 @@ static void msm_mpm_set(cycle_t wakeup, bool wakeset)
 	msm_mpm_send_interrupt();
 }
 
-static void msm_mpm_clear(void)
-{
-	int i;
-
-	for (i = 0; i < MSM_MPM_REG_WIDTH; i++) {
-		msm_mpm_write(MSM_MPM_REQUEST_REG_ENABLE, i, 0);
-		msm_mpm_write(MSM_MPM_REQUEST_REG_CLEAR, i, 0xffffffff);
-	}
-
-	/* Ensure the clear is complete before sending the interrupt */
-	wmb();
-	msm_mpm_send_interrupt();
-}
-
 /******************************************************************************
  * Interrupt Mapping Functions
  *****************************************************************************/
@@ -241,10 +227,11 @@ static int msm_mpm_enable_irq_exclusive(
 	if (!msm_mpm_is_valid_apps_irq(irq))
 		return -EINVAL;
 
+	mpm_irq = msm_mpm_get_irq_a2m(irq);
+
 	if (msm_mpm_bypass_apps_irq(irq))
 		return 0;
 
-	mpm_irq = msm_mpm_get_irq_a2m(irq);
 	if (mpm_irq) {
 		uint32_t *mpm_irq_masks = wakeset ?
 				msm_mpm_wake_irq : msm_mpm_enabled_irq;
@@ -423,19 +410,22 @@ int msm_mpm_set_pin_type(unsigned int pin, unsigned int flow_type)
 bool msm_mpm_irqs_detectable(bool from_idle)
 {
 	unsigned long *apps_irq_bitmap;
+	bool ret = false;
 	int debug_mask;
 
 	if (from_idle) {
 		apps_irq_bitmap = msm_mpm_enabled_apps_irqs;
 		debug_mask = msm_mpm_debug_mask &
-					MSM_MPM_DEBUG_NON_DETECTABLE_IRQ_IDLE;
+				MSM_MPM_DEBUG_NON_DETECTABLE_IRQ_IDLE;
 	} else {
 		apps_irq_bitmap = msm_mpm_wake_apps_irqs;
 		debug_mask = msm_mpm_debug_mask &
-					MSM_MPM_DEBUG_NON_DETECTABLE_IRQ;
+				MSM_MPM_DEBUG_NON_DETECTABLE_IRQ;
 	}
 
-	if (debug_mask) {
+	ret = (bool)__bitmap_empty(apps_irq_bitmap, MSM_MPM_NR_APPS_IRQS);
+
+	if (debug_mask && !ret) {
 		static char buf[DIV_ROUND_UP(MSM_MPM_NR_APPS_IRQS, 32)*9+1];
 
 		bitmap_scnprintf(buf, sizeof(buf), apps_irq_bitmap,
@@ -445,7 +435,7 @@ bool msm_mpm_irqs_detectable(bool from_idle)
 		pr_info("%s: cannot monitor %s", __func__, buf);
 	}
 
-	return (bool)__bitmap_empty(apps_irq_bitmap, MSM_MPM_NR_APPS_IRQS);
+	return ret;
 }
 
 bool msm_mpm_gpio_irqs_detectable(bool from_idle)
@@ -506,7 +496,6 @@ void msm_mpm_exit_sleep(bool from_idle)
 			k = find_next_bit(&pending, 32, k + 1);
 		}
 	}
-	msm_mpm_clear();
 }
 static void msm_mpm_sys_low_power_modes(bool allow)
 {
@@ -572,7 +561,8 @@ static int __init msm_mpm_early_init(void)
 
 	return 0;
 }
-core_initcall(msm_mpm_early_init);
+
+early_initcall(msm_mpm_early_init);
 
 void __init msm_mpm_irq_extn_init(struct msm_mpm_device_data *mpm_data)
 {
@@ -643,4 +633,4 @@ init_free_bail:
 init_bail:
 	return rc;
 }
-device_initcall(msm_mpm_init);
+arch_initcall(msm_mpm_init);
