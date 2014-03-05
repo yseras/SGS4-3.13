@@ -11,7 +11,7 @@ obj-y += acpuclock.o
 obj-$(CONFIG_ARCH_MSM_KRAIT) += acpuclock-krait.o # This should never be updated
 obj-$(CONFIG_ARCH_MSM_KRAIT) += msm-krait-l2-accessors.o #perf_event_msm_krait_l2.o
 
-obj-$(CONFIG_MSM_SMD) += smd.o smd_debug.o smd_private.o smd_init_dt.o smsm_debug.o #Updated from 3.10
+obj-$(CONFIG_MSM_SMD) += smd.o smd_debug.o smd_private.o smd_init_dt.o smsm_debug.o
 obj-$(CONFIG_MSM_SMD) += last_radio_log.o
 obj-$(CONFIG_MSM_SCM) += scm-boot.o
 obj-y += qdsp6v2/
@@ -38,7 +38,7 @@ obj-$(CONFIG_ARCH_QSD8X50) += gpiomux-8x50.o
 obj-$(CONFIG_CPU_V7) += idle-v7.o
 
 obj-$(CONFIG_ARCH_APQ8064) += acpuclock.o acpuclock-8064.o
-obj-$(CONFIG_ARCH_APQ8064) += devices-8064.o #devices-8960.o
+obj-$(CONFIG_ARCH_APQ8064) += devices-8960.o devices-8064.o
 obj-$(CONFIG_ARCH_APQ8064) += board-8064-regulator.o
 board-8064-all-objs += board-8064-gpiomux.o #board-8064.o board-8064-pmic.o board-8064-storage.o board-8064-camera.o board-8064-display.o board-8064-gpu.o
 
