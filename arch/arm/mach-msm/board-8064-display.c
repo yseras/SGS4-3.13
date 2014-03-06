@@ -23,7 +23,7 @@
 #include <mach/gpiomux.h>
 #include <mach/ion.h>
 #include <mach/msm_bus_board.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/socinfo.h>
 
 #include "devices.h"
 #include "board-8064.h"

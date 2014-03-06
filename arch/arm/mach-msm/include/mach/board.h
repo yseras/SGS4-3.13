@@ -396,6 +396,9 @@ struct msm_panel_common_pdata {
 	int (*vga_switch)(int select_vga);
 	int *gpio_num;
 	u32 mdp_max_clk;
+	u64 mdp_max_bw;
+	u32 mdp_bw_ab_factor;
+	u32 mdp_bw_ib_factor;
 #ifdef CONFIG_MSM_BUS_SCALING
 	struct msm_bus_scale_pdata *mdp_bus_scale_table;
 #endif
@@ -438,11 +441,17 @@ struct mddi_platform_data {
 
 struct mipi_dsi_platform_data {
 	int vsync_gpio;
+	void (*active_reset)(int high);
+	int (*power_common)(void);
 	int (*dsi_power_save)(int on);
 	int (*dsi_client_reset)(void);
 	int (*get_lane_config)(void);
 	char (*splash_is_enabled)(void);
 	int target_type;
+#if defined(CONFIG_SUPPORT_SECOND_POWER)
+	int (*panel_power_save)(int on);
+#endif
+
 };
 
 enum mipi_dsi_3d_ctrl {
