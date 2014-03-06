@@ -653,3 +653,6 @@ config KEYBOARD_CROS_EC
 	  module will be called cros_ec_keyb.
 
 endif
+
+source "drivers/input/keyboard/cypress_touchkey_236/Kconfig"
+
