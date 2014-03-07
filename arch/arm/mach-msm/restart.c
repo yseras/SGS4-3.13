@@ -88,8 +88,8 @@ static struct notifier_block panic_blk = {
 static void set_dload_mode(int on)
 {
 	if (dload_mode_addr) {
-		__raw_writel(on ? 0xE47B337D : 0, dload_mode_addr);
-		__raw_writel(on ? 0xCE14091A : 0,
+		writel_relaxed(on ? 0xE47B337D : 0, dload_mode_addr);
+		writel_relaxed(on ? 0xCE14091A : 0,
 		       dload_mode_addr + sizeof(unsigned int));
 		mb();
 		dload_mode_enabled = on;
@@ -104,12 +104,12 @@ static bool get_dload_mode(void)
 static void enable_emergency_dload_mode(void)
 {
 	if (emergency_dload_mode_addr) {
-		__raw_writel(EMERGENCY_DLOAD_MAGIC1,
+		writel_relaxed(EMERGENCY_DLOAD_MAGIC1,
 				emergency_dload_mode_addr);
-		__raw_writel(EMERGENCY_DLOAD_MAGIC2,
+		writel_relaxed(EMERGENCY_DLOAD_MAGIC2,
 				emergency_dload_mode_addr +
 				sizeof(unsigned int));
-		__raw_writel(EMERGENCY_DLOAD_MAGIC3,
+		writel_relaxed(EMERGENCY_DLOAD_MAGIC3,
 				emergency_dload_mode_addr +
 				(2 * sizeof(unsigned int)));
 
@@ -186,7 +186,7 @@ static void __msm_power_off(int lower_pshold)
 
 	if (lower_pshold) {
 		halt_spmi_pmic_arbiter();
-		__raw_writel(0, MSM_MPM2_PSHOLD_BASE);
+		writel(0, MSM_MPM2_PSHOLD_BASE);
 
 		mdelay(10000);
 		printk(KERN_ERR "Powering off has failed\n");
@@ -229,19 +229,19 @@ static void msm_restart_prepare(const char *cmd)
 
 	if (cmd != NULL) {
 		if (!strncmp(cmd, "bootloader", 10)) {
-			__raw_writel(0x77665500, restart_reason);
+			writel_relaxed(0x77665500, restart_reason);
 		} else if (!strncmp(cmd, "recovery", 8)) {
-			__raw_writel(0x77665502, restart_reason);
+			writel_relaxed(0x77665502, restart_reason);
 		} else if (!strcmp(cmd, "rtc")) {
-			__raw_writel(0x77665503, restart_reason);
+			writel_relaxed(0x77665503, restart_reason);
 		} else if (!strncmp(cmd, "oem-", 4)) {
 			unsigned long code;
 			code = simple_strtoul(cmd + 4, NULL, 16) & 0xff;
-			__raw_writel(0x6f656d00 | code, restart_reason);
+			writel_relaxed(0x6f656d00 | code, restart_reason);
 		} else if (!strncmp(cmd, "edl", 3)) {
 			enable_emergency_dload_mode();
 		} else {
-			__raw_writel(0x77665501, restart_reason);
+			writel_relaxed(0x77665501, restart_reason);
 		}
 	}
 
@@ -258,7 +258,7 @@ void msm_restart(enum reboot_mode mode, const char *cmd)
 	/* Needed to bypass debug image on some chips */
 	msm_disable_wdog_debug();
 	halt_spmi_pmic_arbiter();
-	__raw_writel(0, MSM_MPM2_PSHOLD_BASE);
+	writel(0, MSM_MPM2_PSHOLD_BASE);
 
 	mdelay(10000);
 	printk(KERN_ERR "Restarting has failed\n");
