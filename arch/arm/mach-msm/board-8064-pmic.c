@@ -26,10 +26,12 @@
 #include <mach/board.h>
 #include <mach/gpiomux.h>
 #include <mach/restart.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/socinfo.h>
 #include "devices.h"
 #include "board-8064.h"
 #include <mach/apq8064-gpio.h>
+#include <mach/irqs-8064.h>
+#include <linux/ssbi.h>
 
 struct pm8xxx_gpio_init {
 	unsigned			gpio;
@@ -469,12 +471,12 @@ static int apq8064_pm8921_therm_mitigation[] = {
 #define CHG_TERM_MA		100
 static struct pm8921_charger_platform_data
 apq8064_pm8921_chg_pdata __devinitdata = {
-	.safety_time		= 180,
+	/*.safety_time		= 180,*/
 	.update_time		= 60000,
 	.max_voltage		= MAX_VOLTAGE_MV,
 	.min_voltage		= 3200,
 	.uvd_thresh_voltage	= 4050,
-	.alarm_voltage		= 3400,
+	.alarm_low_mv		= 3400,
 	.resume_voltage_delta	= 100,
 	.term_current		= CHG_TERM_MA,
 	.cool_temp		= 10,
@@ -491,14 +493,14 @@ apq8064_pm8921_chg_pdata __devinitdata = {
 
 static struct pm8xxx_ccadc_platform_data
 apq8064_pm8xxx_ccadc_pdata = {
-	.r_sense		= 10,
+	.r_sense_uohm		= 10,
 	.calib_delay_ms		= 600000,
 };
 
 static struct pm8921_bms_platform_data
 apq8064_pm8921_bms_pdata __devinitdata = {
 	.battery_type			= BATT_UNKNOWN,
-	.r_sense			= 10,
+	.r_sense_uohm			= 10,
 	.v_cutoff			= 3400,
 	.max_voltage_uv			= MAX_VOLTAGE_MV * 1000,
 	.rconn_mohm			= 18,
@@ -541,7 +543,7 @@ apq8064_pm8821_platform_data __devinitdata = {
 	.mpp_pdata	= &apq8064_pm8821_mpp_pdata,
 };
 
-static struct msm_ssbi_platform_data apq8064_ssbi_pm8921_pdata __devinitdata = {
+static struct ssbi_platform_data apq8064_ssbi_pm8921_pdata __devinitdata = {
 	.controller_type = MSM_SBI_CTRL_PMIC_ARBITER,
 	.slave	= {
 		.name		= "pm8921-core",
@@ -549,7 +551,7 @@ static struct msm_ssbi_platform_data apq8064_ssbi_pm8921_pdata __devinitdata = {
 	},
 };
 
-static struct msm_ssbi_platform_data apq8064_ssbi_pm8821_pdata __devinitdata = {
+static struct ssbi_platform_data apq8064_ssbi_pm8821_pdata __devinitdata = {
 	.controller_type = MSM_SBI_CTRL_PMIC_ARBITER,
 	.slave	= {
 		.name		= "pm8821-core",
