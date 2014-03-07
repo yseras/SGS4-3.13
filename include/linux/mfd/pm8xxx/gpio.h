@@ -30,6 +30,8 @@ struct pm8xxx_gpio_core_data {
 struct pm8xxx_gpio_platform_data {
 	struct pm8xxx_gpio_core_data	gpio_cdata;
 	int				gpio_base;
+	int				*dbg_gpios;
+	int				dbg_gpio_len;
 };
 
 /* GPIO parameters */
@@ -143,7 +145,7 @@ struct pm_gpio {
 	int		disable_pin;
 };
 
-#if defined(CONFIG_GPIO_PM8XXX_MODULE)
+#if defined(CONFIG_GPIO_PM8XXX) || defined(CONFIG_GPIO_PM8XXX_MODULE)
 /**
  * pm8xxx_gpio_config - configure a gpio controlled by a pm8xxx chip
  * @gpio: gpio number to configure
