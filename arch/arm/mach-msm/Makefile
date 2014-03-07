@@ -60,6 +60,7 @@ obj-$(CONFIG_MSM_SPM_V2) += spm-v2.o spm_devices.o
 obj-$(CONFIG_MSM_SHOW_RESUME_IRQ) += msm_show_resume_irq.o
 obj-$(CONFIG_MSM_NATIVE_RESTART) += restart.o
 
+obj-$(CONFIG_MSM_CACHE_ERP) += cache_erp.o
 obj-$(CONFIG_MFD_MAX77693) += sec-switch.o
 
 ifdef CONFIG_SEC_THERMISTOR
