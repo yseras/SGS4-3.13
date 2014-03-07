@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -30,8 +30,6 @@ struct pm8xxx_gpio_core_data {
 struct pm8xxx_gpio_platform_data {
 	struct pm8xxx_gpio_core_data	gpio_cdata;
 	int				gpio_base;
-	int				*dbg_gpios;
-	int				dbg_gpio_len;
 };
 
 /* GPIO parameters */
@@ -145,7 +143,7 @@ struct pm_gpio {
 	int		disable_pin;
 };
 
-#if defined(CONFIG_GPIO_PM8XXX) || defined(CONFIG_GPIO_PM8XXX_MODULE)
+#if defined(CONFIG_GPIO_PM8XXX_MODULE)
 /**
  * pm8xxx_gpio_config - configure a gpio controlled by a pm8xxx chip
  * @gpio: gpio number to configure
@@ -154,13 +152,11 @@ struct pm_gpio {
  * RETURNS: an appropriate -ERRNO error value on error, or zero for success.
  */
 int pm8xxx_gpio_config(int gpio, struct pm_gpio *param);
-void pm_gpio_dbg_showall(unsigned int level);
 #else
 static inline int pm8xxx_gpio_config(int gpio, struct pm_gpio *param)
 {
 	return -ENXIO;
 }
-static inline void pm_gpio_dbg_showall(unsigned int level) {}
 #endif
 
 #endif

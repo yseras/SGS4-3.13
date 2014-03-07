@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -25,8 +25,6 @@ struct pm8xxx_mpp_core_data {
 struct pm8xxx_mpp_platform_data {
 	struct pm8xxx_mpp_core_data	core_data;
 	int				mpp_base;
-	int				*dbg_mpps;
-	int				dbg_mpp_len;
 };
 
 /**
@@ -108,7 +106,7 @@ struct pm8xxx_mpp_config_data {
 };
 
 /* API */
-#if defined(CONFIG_GPIO_PM8XXX_MPP) || defined(CONFIG_GPIO_PM8XXX_MPP_MODULE)
+#if defined(CONFIG_GPIO_PM8XXX_MPP_MODULE)
 
 /**
  * pm8xxx_mpp_config() - configure control options of a multi-purpose pin (MPP)
@@ -120,7 +118,6 @@ struct pm8xxx_mpp_config_data {
  */
 int pm8xxx_mpp_config(unsigned mpp, struct pm8xxx_mpp_config_data *config);
 
-void pm_mpp_dbg_showall(unsigned int level);
 #else
 
 static inline int pm8xxx_mpp_config(unsigned mpp,
@@ -129,7 +126,6 @@ static inline int pm8xxx_mpp_config(unsigned mpp,
 	return -ENXIO;
 }
 
-static inline void pm_mpp_dbg_showall(unsigned int level) {}
 #endif
 
 /* MPP Type: type */

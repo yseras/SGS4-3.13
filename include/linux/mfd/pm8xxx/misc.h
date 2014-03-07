@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -95,7 +95,7 @@ enum pm8xxx_hsed_bias {
 	PM8XXX_HSED_BIAS2,
 };
 
-#if defined(CONFIG_MFD_PM8XXX_MISC) || defined(CONFIG_MFD_PM8XXX_MISC_MODULE)
+#if defined(CONFIG_MFD_PM8XXX_MISC_MODULE)
 
 /**
  * pm8xxx_reset_pwr_off - switch all PM8XXX PMIC chips attached to the system to
@@ -169,9 +169,6 @@ int pm8xxx_watchdog_reset_control(int enable);
  */
 int pm8xxx_hard_reset_config(enum pm8xxx_pon_config config);
 
-int pm8xxx_hard_reset_enabled(void);
-int pm8xxx_hard_reset_control(int enable);
-
 /**
  * pm8xxx_stay_on - enables stay_on feature
  *
@@ -227,6 +224,16 @@ int pm8xxx_aux_clk_control(enum pm8xxx_aux_clk_id clk_id,
  * RETURNS: an appropriate -ERRNO error value on error, or zero for success.
  */
 int pm8xxx_hsed_bias_control(enum pm8xxx_hsed_bias bias, bool enable);
+
+/**
+ * pm8xxx_read_register - Read a PMIC register
+ * @addr: PMIC register address
+ * @value: Output parameter which gets the value of the register read.
+ *
+ * RETURNS: an appropriate -ERRNO error value on error, or zero for success.
+ */
+int pm8xxx_read_register(u16 addr, u8 *value);
+
 #else
 
 static inline int pm8xxx_reset_pwr_off(int reset)
@@ -278,6 +285,10 @@ static inline int pm8xxx_aux_clk_control(enum pm8xxx_aux_clk_id clk_id,
 }
 static inline int pm8xxx_hsed_bias_control(enum pm8xxx_hsed_bias bias,
 							bool enable)
+{
+	return -ENODEV;
+}
+static inline int pm8xxx_read_register(u16 addr, u8 *value)
 {
 	return -ENODEV;
 }
