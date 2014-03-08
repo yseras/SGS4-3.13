@@ -471,7 +471,6 @@ static int apq8064_pm8921_therm_mitigation[] = {
 #define CHG_TERM_MA		100
 static struct pm8921_charger_platform_data
 apq8064_pm8921_chg_pdata __devinitdata = {
-	/*.safety_time		= 180,*/
 	.update_time		= 60000,
 	.max_voltage		= MAX_VOLTAGE_MV,
 	.min_voltage		= 3200,
@@ -483,12 +482,18 @@ apq8064_pm8921_chg_pdata __devinitdata = {
 	.warm_temp		= 40,
 	.temp_check_period	= 1,
 	.max_bat_chg_current	= 1100,
+#if defined (CONFIG_MFD_PM8921_FAST_CHARGE) /* This doesn't exist yet for now: TODO */ 
+	.usb_max_current	= 1500, /* 1500 mA */
+#else /* Default: no fast charge */
+	.usb_max_current	= 500, /* 500 mA */
+#endif
 	.cool_bat_chg_current	= 350,
 	.warm_bat_chg_current	= 350,
 	.cool_bat_voltage	= 4100,
 	.warm_bat_voltage	= 4100,
 	.thermal_mitigation	= apq8064_pm8921_therm_mitigation,
 	.thermal_levels		= ARRAY_SIZE(apq8064_pm8921_therm_mitigation),
+	.stop_chg_upon_expiry	= 1, /* Don't charge the battery again when the safety timer expires */
 };
 
 static struct pm8xxx_ccadc_platform_data
