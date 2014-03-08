@@ -1,2 +1,2 @@
-obj-y += q6usm.o usf.o usfcdev.o
-EXTRA_CFLAGS += -I$(src)/..
+ccflags-y := -I$(src)/..
+obj-$(CONFIG_MSM_ULTRASOUND_B) += usf.o usfcdev.o q6usm_b.o

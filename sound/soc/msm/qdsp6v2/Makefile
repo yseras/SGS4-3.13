@@ -1,14 +1,28 @@
-snd-soc-qdsp6v2-objs += msm-dai-q6-v2.o msm-pcm-q6-v2.o msm-pcm-routing-v2.o \
-			msm-compress-q6-v2.o msm-compr-q6-v2.o \
-			msm-multi-ch-pcm-q6-v2.o msm-pcm-lpa-v2.o \
-			msm-pcm-afe-v2.o msm-pcm-voip-v2.o \
-			msm-pcm-voice-v2.o msm-dai-q6-hdmi-v2.o \
-			msm-lsm-client.o msm-pcm-host-voice-v2.o \
-			msm-audio-effects-q6-v2.o msm-pcm-loopback-v2.o
-obj-$(CONFIG_SND_SOC_QDSP6V2) += snd-soc-qdsp6v2.o msm-pcm-dtmf-v2.o \
-				 msm-dai-stub-v2.o
-obj-$(CONFIG_DOLBY_DAP) += msm-dolby-dap-config.o
-obj-y += q6adm.o q6afe.o q6asm.o q6audio-v2.o q6voice.o q6core.o audio_acdb.o \
-	 rtac.o q6lsm.o audio_slimslave.o
-ocmem-audio-objs += audio_ocmem.o
-obj-$(CONFIG_AUDIO_OCMEM) += ocmem-audio.o
+ifdef CONFIG_ARCH_MSM8X60
+obj-y += audio_dev_ctl.o
+obj-y += board-msm8x60-audio.o
+obj-$(CONFIG_TIMPANI_CODEC) += snddev_icodec.o
+obj-y += snddev_ecodec.o snddev_mi2s.o snddev_virtual.o
+obj-y += pcm_out.o pcm_in.o fm.o
+obj-y += audio_lpa.o
+obj-y += q6voice.o
+obj-y += snddev_hdmi.o
+obj-y += audio_mvs.o
+obj-$(CONFIG_FB_MSM_HDMI_MSM_PANEL) += lpa_if_hdmi.o
+endif
+obj-$(CONFIG_MSM_QDSP6_APR) += apr.o apr_v1.o apr_tal.o q6core.o dsp_debug.o
+obj-$(CONFIG_MSM_QDSP6_APRV2) += apr.o apr_v2.o apr_tal.o q6core.o dsp_debug.o
+obj-y += audio_acdb.o
+ifdef CONFIG_ARCH_MSM9615
+obj-y += rtac.o
+endif
+obj-$(CONFIG_MSM_QDSP6_CODECS) += aac_in.o qcelp_in.o evrc_in.o amrnb_in.o audio_utils.o
+obj-$(CONFIG_MSM_QDSP6_CODECS) += audio_wma.o audio_wmapro.o audio_aac.o audio_multi_aac.o audio_utils_aio.o
+obj-$(CONFIG_MSM_QDSP6_CODECS) += rtac.o q6audio_v1.o q6audio_v1_aio.o
+obj-$(CONFIG_MSM_QDSP6_CODECS) += audio_mp3.o audio_amrnb.o audio_amrwb.o audio_amrwbplus.o audio_evrc.o audio_qcelp.o amrwb_in.o
+obj-$(CONFIG_MSM_QDSP6V2_CODECS) += aac_in.o qcelp_in.o evrc_in.o amrnb_in.o audio_utils.o
+obj-$(CONFIG_MSM_QDSP6V2_CODECS) += audio_wma.o audio_wmapro.o audio_aac.o audio_multi_aac.o audio_utils_aio.o
+obj-$(CONFIG_MSM_QDSP6V2_CODECS) += rtac_v2.o q6audio_v2.o q6audio_v2_aio.o
+obj-$(CONFIG_MSM_QDSP6V2_CODECS)  += audio_mp3.o audio_amrnb.o audio_amrwb.o audio_evrc.o audio_qcelp.o amrwb_in.o
+obj-$(CONFIG_MSM_ADSP_LOADER) += adsp-loader.o
+obj-$(CONFIG_MSM_ULTRASOUND) += ultrasound/
