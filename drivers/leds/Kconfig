@@ -127,6 +127,17 @@ config LEDS_COBALT_QUBE
 	help
 	  This option enables support for the front LED on Cobalt Qube series
 
+config LEDS_MAX77693
+	bool "LED support for the MAX77693"
+	depends on LEDS_CLASS
+	depends on MFD_MAX77693
+	default n
+	help
+	  This option enables support for the LEDs
+	  on the MAX77693 and MAX77803.
+	  Now camera_class is exceptioned
+	  by sgonil.kim.
+
 config LEDS_COBALT_RAQ
 	bool "LED Support for the Cobalt Raq series"
 	depends on LEDS_CLASS=y && MIPS_COBALT
