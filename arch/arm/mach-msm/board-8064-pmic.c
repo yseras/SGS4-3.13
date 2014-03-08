@@ -482,7 +482,7 @@ apq8064_pm8921_chg_pdata __devinitdata = {
 	.warm_temp		= 40,
 	.temp_check_period	= 1,
 	.max_bat_chg_current	= 1100,
-#if defined (CONFIG_MFD_PM8921_FAST_CHARGE) /* This doesn't exist yet for now: TODO */ 
+#ifdef CONFIG_MFD_PM8921_FAST_CHARGE /* This doesn't exist yet for now: TODO */ 
 	.usb_max_current	= 1500, /* 1500 mA */
 #else /* Default: no fast charge */
 	.usb_max_current	= 500, /* 500 mA */

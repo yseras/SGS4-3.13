@@ -44,7 +44,9 @@
 #include <linux/gpio.h>
 #include <linux/miscdevice.h>
 #include <linux/uaccess.h>
-#include <linux/earlysuspend.h>
+#ifdef CONFIG_POWERSUSPEND
+#include <linux/powersuspend.h>
+#endif /* CONFIG_POWERSUSPEND */
 #include <linux/io.h>
 #include <linux/hrtimer.h>
 
