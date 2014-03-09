@@ -73,6 +73,7 @@ snd-soc-uda134x-objs := uda134x.o
 snd-soc-uda1380-objs := uda1380.o
 snd-soc-es325-objs := es325.o
 snd-soc-wcd9310-objs := wcd9310.o wcd9310-tables.o
+CFLAGS_wcd9310.o += -fno-aggressive-loop-optimizations
 snd-soc-wl1273-objs := wl1273.o
 snd-soc-wm-adsp-objs := wm_adsp.o
 snd-soc-wm0010-objs := wm0010.o
