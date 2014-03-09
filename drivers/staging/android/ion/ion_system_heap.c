@@ -231,7 +231,7 @@ static struct ion_heap_ops system_heap_ops = {
 	.map_user = ion_heap_map_user,
 };
 
-static int ion_system_heap_shrink(struct shrinker *shrinker,
+static unsigned long ion_system_heap_shrink_scan(struct shrinker *shrinker,
 				  struct shrink_control *sc) {
 
 	struct ion_heap *heap = container_of(shrinker, struct ion_heap,
@@ -378,7 +378,7 @@ struct ion_heap *ion_system_heap_create(struct ion_platform_heap *unused)
 	if (ion_system_heap_create_pools(heap->cached_pools))
 		goto err_create_cached_pools;
 
-	heap->heap.shrinker.shrink = ion_system_heap_shrink;
+	heap->heap.shrinker.scan_objects = ion_system_heap_shrink_scan;
 	heap->heap.shrinker.seeks = DEFAULT_SEEKS;
 	heap->heap.shrinker.batch = 0;
 	register_shrinker(&heap->heap.shrinker);
