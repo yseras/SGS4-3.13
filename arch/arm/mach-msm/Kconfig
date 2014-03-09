@@ -323,4 +323,9 @@ config MSM_CACHE_ERP
 	  reported in /proc/cpu/msm_cache_erp.
 
 	  For production builds, you should probably say 'N' here.
+
+config JF_FAST_CHARGE
+	bool "Set USB max current to 1500 mA for fast charging"
+	default n
+	depends on MFD_PM8921_CORE
 endif
