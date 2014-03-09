@@ -1,7 +1,8 @@
 /*
- * drivers/staging/android/ion/ion_heap.c
+ * drivers/gpu/ion/ion_heap.c
  *
  * Copyright (C) 2011 Google, Inc.
+ * Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -22,6 +23,8 @@
 #include <linux/sched.h>
 #include <linux/scatterlist.h>
 #include <linux/vmalloc.h>
+#include <linux/slab.h>
+#include <linux/highmem.h>
 #include "ion.h"
 #include "ion_priv.h"
 
@@ -149,13 +152,61 @@ int ion_heap_buffer_zero(struct ion_buffer *buffer)
 	return ion_heap_sglist_zero(table->sgl, table->nents, pgprot);
 }
 
-int ion_heap_pages_zero(struct page *page, size_t size, pgprot_t pgprot)
-{
-	struct scatterlist sg;
+#define MAX_VMAP_RETRIES 10
 
-	sg_init_table(&sg, 1);
-	sg_set_page(&sg, page, size, 0);
-	return ion_heap_sglist_zero(&sg, 1, pgprot);
+/**
+ * An optimized page-zero'ing function. vmaps arrays of pages in large
+ * chunks to minimize the number of memsets and vmaps/vunmaps.
+ *
+ * Note that the `pages' array should be composed of all 4K pages.
+ */
+int ion_heap_pages_zero(struct page **pages, int num_pages)
+{
+	int i, j, k, npages_to_vmap;
+	void *ptr = NULL;
+	/*
+	 * It's cheaper just to use writecombine memory and skip the
+	 * cache vs. using a cache memory and trying to flush it afterwards
+	 */
+	pgprot_t pgprot = pgprot_writecombine(PAGE_KERNEL);
+
+	/*
+	 * As an optimization, we manually zero out all of the pages
+	 * in one fell swoop here. To safeguard against insufficient
+	 * vmalloc space, we only vmap `npages_to_vmap' at a time,
+	 * starting with a conservative estimate of 1/8 of the total
+	 * number of vmalloc pages available.
+	 */
+	npages_to_vmap = ((VMALLOC_END - VMALLOC_START)/8)
+			>> PAGE_SHIFT;
+	for (i = 0; i < num_pages; i += npages_to_vmap) {
+		npages_to_vmap = min(npages_to_vmap, num_pages - i);
+		for (j = 0; j < MAX_VMAP_RETRIES && npages_to_vmap;
+			++j) {
+			ptr = vmap(&pages[i], npages_to_vmap,
+					VM_IOREMAP, pgprot);
+			if (ptr)
+				break;
+			else
+				npages_to_vmap >>= 1;
+		}
+		if (!ptr)
+			return -ENOMEM;
+
+		memset(ptr, 0, npages_to_vmap * PAGE_SIZE);
+		/*
+		 * invalidate the cache to pick up the zeroing
+		 */
+		for (k = 0; k < npages_to_vmap; k++) {
+			void *p = kmap_atomic(pages[i + k]);
+
+			dmac_inv_range(p, p + PAGE_SIZE);
+			kunmap_atomic(p);
+		}
+		vunmap(ptr);
+	}
+
+	return 0;
 }
 
 void ion_heap_freelist_add(struct ion_heap *heap, struct ion_buffer *buffer)
