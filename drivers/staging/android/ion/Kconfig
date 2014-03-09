@@ -1,6 +1,5 @@
 menuconfig ION
-	tristate "Ion Memory Manager"
-	depends on HAVE_MEMBLOCK
+	bool "Ion Memory Manager"
 	select GENERIC_ALLOCATOR
 	select DMA_SHARED_BUFFER
 	---help---
@@ -16,6 +15,12 @@ config ION_TEST
 	help
 	  Choose this option to create a device that can be used to test the
 	  kernel and device side ION functions.
+
+config ION_TEGRA
+	tristate "Ion for Tegra"
+	depends on ARCH_TEGRA && ION
+	help
+	  Choose this option if you wish to use ion on an nVidia Tegra.
 
 config ION_MSM
 	tristate "Ion for MSM"

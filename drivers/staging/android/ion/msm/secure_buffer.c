@@ -163,8 +163,6 @@ static int secure_buffer_change_table(struct sg_table *table,
 		 * in RAM
 		 */
 		dmac_flush_range(chunk_list, chunk_list + chunk_list_len);
-		outer_flush_range(chunk_list_phys,
-				chunk_list_phys + chunk_list_len);
 
 		ret = secure_buffer_change_chunk(virt_to_phys(chunk_list),
 				nchunks, V2_CHUNK_SIZE, usage, lock);
@@ -229,7 +227,7 @@ int msm_ion_secure_buffer(struct ion_client *client, struct ion_handle *handle,
 out:
 	return ret;
 }
-
+EXPORT_SYMBOL(msm_ion_secure_buffer);
 
 static void msm_secure_buffer_release(struct kref *kref)
 {
@@ -282,6 +280,7 @@ int msm_ion_unsecure_buffer(struct ion_client *client,
 out:
 	return ret;
 }
+EXPORT_SYMBOL(msm_ion_unsecure_buffer);
 
 #define MAKE_CP_VERSION(major, minor, patch) \
 	(((major & 0x3FF) << 22) | ((minor & 0x3FF) << 12) | (patch & 0xFFF))
