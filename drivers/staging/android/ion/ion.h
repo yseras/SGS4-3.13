@@ -2,6 +2,7 @@
  * drivers/staging/android/ion/ion.h
  *
  * Copyright (C) 2011 Google, Inc.
+ * Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -17,9 +18,8 @@
 #ifndef _LINUX_ION_H
 #define _LINUX_ION_H
 
-#include <linux/types.h>
-
-#include "../uapi/ion.h"
+#include <linux/err.h>
+#include "../uapi/linux/ion.h"
 
 struct ion_handle;
 struct ion_device;

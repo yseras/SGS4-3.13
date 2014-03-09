@@ -16,12 +16,11 @@
 #include <linux/gpio.h>
 #include <linux/platform_device.h>
 #include <linux/bootmem.h>
-#include <linux/msm_ion.h>
 #include <asm/mach-types.h>
 #include <mach/msm_memtypes.h>
 #include <mach/board.h>
 #include <mach/gpiomux.h>
-#include <mach/ion.h>
+#include <linux/msm_ion.h>
 #include <mach/msm_bus_board.h>
 #include <soc/qcom/socinfo.h>
 

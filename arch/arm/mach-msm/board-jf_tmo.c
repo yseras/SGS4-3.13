@@ -56,7 +56,7 @@
 #endif
 #include <mach/board.h>
 #include <mach/msm_iomap.h>
-#include <mach/ion.h>
+#include <linux/msm_ion.h>
 #include <linux/usb/msm_hsusb.h>
 #include <linux/usb/android.h>
 #include <soc/qcom/socinfo.h>
