@@ -3103,7 +3103,7 @@ static struct platform_driver msm_routing_pcm_driver = {
 		.owner = THIS_MODULE,
 	},
 	.probe = msm_routing_pcm_probe,
-	.remove = __devexit_p(msm_routing_pcm_remove),
+	.remove = msm_routing_pcm_remove,
 };
 
 int msm_routing_check_backend_enabled(int fedai_id)
