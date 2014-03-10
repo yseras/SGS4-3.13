@@ -67,10 +67,6 @@ static int msm_route_fm_vol_control;
 static const DECLARE_TLV_DB_LINEAR(fm_rx_vol_gain, 0,
 			INT_RX_VOL_MAX_STEPS);
 
-static int msm_route_lpa_vol_control;
-static const DECLARE_TLV_DB_LINEAR(lpa_rx_vol_gain, 0,
-			INT_RX_LR_VOL_MAX_STEPS);
-
 static int msm_route_multimedia2_vol_control;
 static const DECLARE_TLV_DB_LINEAR(multimedia2_rx_vol_gain, 0,
 			INT_RX_VOL_MAX_STEPS);
@@ -78,10 +74,6 @@ static const DECLARE_TLV_DB_LINEAR(multimedia2_rx_vol_gain, 0,
 static int msm_route_multimedia5_vol_control;
 static const DECLARE_TLV_DB_LINEAR(multimedia5_rx_vol_gain, 0,
 			INT_RX_VOL_MAX_STEPS);
-
-static int msm_route_compressed_vol_control;
-static const DECLARE_TLV_DB_LINEAR(compressed_rx_vol_gain, 0,
-			INT_RX_LR_VOL_MAX_STEPS);
 
 static int msm_route_ec_ref_rx;
 static int msm_route_ext_ec_ref;
@@ -851,7 +843,7 @@ static int msm_routing_set_fm_vol_mixer(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-static int msm_routing_get_lpa_vol_mixer(struct snd_kcontrol *kcontrol,
+/*static int msm_routing_get_lpa_vol_mixer(struct snd_kcontrol *kcontrol,
 				struct snd_ctl_elem_value *ucontrol)
 {
 	ucontrol->value.integer.value[0] = msm_route_lpa_vol_control;
@@ -866,7 +858,7 @@ static int msm_routing_set_lpa_vol_mixer(struct snd_kcontrol *kcontrol,
 			ucontrol->value.integer.value[0];
 
 	return 0;
-}
+}*/
 
 static int msm_routing_get_multimedia2_vol_mixer(struct snd_kcontrol *kcontrol,
 				struct snd_ctl_elem_value *ucontrol)
@@ -906,7 +898,7 @@ static int msm_routing_set_multimedia5_vol_mixer(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-static int msm_routing_get_compressed_vol_mixer(struct snd_kcontrol *kcontrol,
+/*static int msm_routing_get_compressed_vol_mixer(struct snd_kcontrol *kcontrol,
 				struct snd_ctl_elem_value *ucontrol)
 {
 
@@ -922,7 +914,7 @@ static int msm_routing_set_compressed_vol_mixer(struct snd_kcontrol *kcontrol,
 			ucontrol->value.integer.value[0];
 
 	return 0;
-}
+}*/
 
 static int msm_routing_get_srs_trumedia_control(struct snd_kcontrol *kcontrol,
 				struct snd_ctl_elem_value *ucontrol)
@@ -957,9 +949,8 @@ static int msm_routing_set_srs_trumedia_control_(struct snd_kcontrol *kcontrol,
 			SRS_PARAM_VALUE_MASK);
 	if (offset < max) {
 		msm_srs_trumedia_params[index].raw_params[offset] = value;
-		pr_debug("SRS %s: index set... (max %d, requested %d,"
-			" val %d, paramblockidx %d)", __func__, max, offset,
-			value, index);
+		pr_debug("SRS %s: index set... (max %d, requested %d, val %d, paramblockidx %d)",
+			__func__, max, offset, value, index);
 	} else {
 		pr_err("SRS %s: index out of bounds! (max %d, requested %d)",
 				__func__, max, offset);
@@ -973,10 +964,9 @@ static int msm_routing_set_srs_trumedia_control_(struct snd_kcontrol *kcontrol,
 			}
 			if (i ==
 			(sizeof(struct srs_trumedia_params_GLOBAL) >> 1)) {
+				pr_debug("SRS %s: wowhd block start at offset %d word offset %d",
+					__func__, i, i>>1);
 				break;
-				pr_debug("SRS %s: wowhd block start at"
-					" offset %d word offset %d", __func__,
-					i, i>>1);
 			}
 			pr_debug("SRS %s: param_index %d index %d val %d",
 				__func__, index, i,
@@ -1028,7 +1018,7 @@ static void msm_send_eq_values(int eq_idx)
 {
 	int result;
 	struct audio_client *ac = q6asm_get_audio_client(
-				fe_dai_map[eq_idx][SESSION_TYPE_RX].strm_id);
+				  fe_dai_map[eq_idx][SESSION_TYPE_RX].strm_id);
 
 	if (ac == NULL) {
 		pr_err("%s: Could not get audio client for session: %d\n",
@@ -2045,12 +2035,6 @@ static const struct snd_kcontrol_new int_fm_vol_mixer_controls[] = {
 	msm_routing_set_fm_vol_mixer, fm_rx_vol_gain),
 };
 
-static const struct snd_kcontrol_new lpa_vol_mixer_controls[] = {
-	SOC_SINGLE_EXT_TLV("LPA RX Volume", SND_SOC_NOPM, 0,
-	INT_RX_VOL_GAIN, 0, msm_routing_get_lpa_vol_mixer,
-	msm_routing_set_lpa_vol_mixer, lpa_rx_vol_gain),
-};
-
 static const struct snd_kcontrol_new multimedia2_vol_mixer_controls[] = {
 	SOC_SINGLE_EXT_TLV("HIFI2 RX Volume", SND_SOC_NOPM, 0,
 	INT_RX_VOL_GAIN, 0, msm_routing_get_multimedia2_vol_mixer,
@@ -2063,11 +2047,6 @@ static const struct snd_kcontrol_new multimedia5_vol_mixer_controls[] = {
 	msm_routing_set_multimedia5_vol_mixer, multimedia5_rx_vol_gain),
 };
 
-static const struct snd_kcontrol_new compressed_vol_mixer_controls[] = {
-	SOC_SINGLE_EXT_TLV("COMPRESSED RX Volume", SND_SOC_NOPM, 0,
-	INT_RX_VOL_GAIN, 0, msm_routing_get_compressed_vol_mixer,
-	msm_routing_set_compressed_vol_mixer, compressed_rx_vol_gain),
-};
 
 static const struct snd_kcontrol_new lpa_SRS_trumedia_controls[] = {
 	{.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
@@ -3029,10 +3008,6 @@ static int msm_routing_probe(struct snd_soc_platform *platform)
 			ARRAY_SIZE(int_fm_vol_mixer_controls));
 
 	snd_soc_add_platform_controls(platform,
-				lpa_vol_mixer_controls,
-			ARRAY_SIZE(lpa_vol_mixer_controls));
-
-	snd_soc_add_platform_controls(platform,
 				eq_enable_mixer_controls,
 			ARRAY_SIZE(eq_enable_mixer_controls));
 
@@ -3051,10 +3026,6 @@ static int msm_routing_probe(struct snd_soc_platform *platform)
 	snd_soc_add_platform_controls(platform,
 				multimedia5_vol_mixer_controls,
 			ARRAY_SIZE(multimedia5_vol_mixer_controls));
-
-	snd_soc_add_platform_controls(platform,
-				compressed_vol_mixer_controls,
-			ARRAY_SIZE(compressed_vol_mixer_controls));
 
 	snd_soc_add_platform_controls(platform,
 				lpa_SRS_trumedia_controls,
