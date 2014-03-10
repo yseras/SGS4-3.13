@@ -31,7 +31,7 @@ obj-$(CONFIG_ARCH_QSD8X50) += gpiomux-8x50.o
 # APQ8064/MSM8960 support from our Samsung sources begins here
 #
 
-#obj-$(CONFIG_ARCH_MSM_KRAIT) += krait-scm.o
+obj-$(CONFIG_ARCH_MSM_KRAIT) += krait-scm.o
 obj-$(CONFIG_CPU_V7) += idle-v7.o
 
 obj-$(CONFIG_ARCH_APQ8064) += acpuclock.o acpuclock-8064.o
