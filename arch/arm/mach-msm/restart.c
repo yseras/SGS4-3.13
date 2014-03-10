@@ -245,8 +245,8 @@ static void msm_restart_prepare(const char *cmd)
 		}
 	}
 
-	flush_cache_all();
-	outer_flush_all();
+	/*flush_cache_all();
+	outer_flush_all();*/
 }
 
 void msm_restart(enum reboot_mode mode, const char *cmd)
