@@ -49,6 +49,4 @@ int core_req_bus_bandwith(u16 bus_id, u32 ab_bps, u32 ib_bps);
 
 uint32_t core_get_adsp_version(void);
 
-uint32_t core_set_dolby_manufacturer_id(int manufacturer_id);
-
 #endif /* __Q6CORE_H__ */
