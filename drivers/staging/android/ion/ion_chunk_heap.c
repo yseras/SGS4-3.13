@@ -109,6 +109,8 @@ static void ion_chunk_heap_free(struct ion_buffer *buffer)
                                        DMA_BIDIRECTIONAL);
 
 	for_each_sg(table->sgl, sg, table->nents, i) {
+		if (ion_buffer_cached(buffer))
+			dma_sync_sg_for_device(NULL, sg, 1, DMA_BIDIRECTIONAL);
 		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
 			      sg->length);
 	}
