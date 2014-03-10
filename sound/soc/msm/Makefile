@@ -29,12 +29,12 @@ obj-$(CONFIG_SND_SOC_MSM8660_LPAIF) += snd-soc-lpass.o
 
 # for MSM 8960 sound card driver
 
-obj-$(CONFIG_SND_SOC_MSM_QDSP6_INTF) += qdsp6v2/
-#snd-soc-qdsp6-objs := msm-dai-q6.o msm-pcm-q6.o msm-multi-ch-pcm-q6.o msm-lowlatency-pcm-q6.o msm-dai-fe.o msm-dai-stub.o #msm-compr-q6.o msm-pcm-routing.o <-replaced by qdsp6v2/msm-pcm-routing-v2
+obj-$(CONFIG_SND_SOC_MSM_QDSP6_INTF) += qdsp6/
+snd-soc-qdsp6-objs := msm-dai-q6.o msm-pcm-q6.o msm-multi-ch-pcm-q6.o msm-lowlatency-pcm-q6.o msm-dai-fe.o msm-dai-stub.o #msm-compr-q6.o msm-pcm-routing.o <-replaced by qdsp6v2/msm-pcm-routing-v2
 obj-$(CONFIG_SND_SOC_MSM_QDSP6_HDMI_AUDIO) += msm-dai-q6-hdmi.o
-#obj-$(CONFIG_SND_SOC_VOICE) += msm-pcm-voice.o msm-pcm-voip.o
-#snd-soc-qdsp6-objs += msm-pcm-afe.o #msm-pcm-lpa.o
-#obj-$(CONFIG_SND_SOC_QDSP6) += snd-soc-qdsp6.o
+obj-$(CONFIG_SND_SOC_VOICE) += msm-pcm-voice.o msm-pcm-voip.o
+snd-soc-qdsp6-objs += msm-pcm-afe.o #msm-pcm-lpa.o
+obj-$(CONFIG_SND_SOC_QDSP6) += snd-soc-qdsp6.o
 
 snd-soc-hostless-pcm-objs := msm-pcm-hostless.o
 obj-$(CONFIG_SND_SOC_MSM_HOSTLESS_PCM) += snd-soc-hostless-pcm.o

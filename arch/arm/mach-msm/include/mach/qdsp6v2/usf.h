@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -73,8 +73,7 @@ enum us_detect_mode_enum {
 #define USF_TSC_PTR_EVENT_IND  1
 #define USF_MOUSE_EVENT_IND    2
 #define USF_KEYBOARD_EVENT_IND 3
-#define USF_TSC_EXT_EVENT_IND  4
-#define USF_MAX_EVENT_IND      5
+#define USF_MAX_EVENT_IND      4
 
 /* Types of events, produced by the calculators */
 #define USF_NO_EVENT 0
@@ -82,12 +81,10 @@ enum us_detect_mode_enum {
 #define USF_TSC_PTR_EVENT  (1 << USF_TSC_PTR_EVENT_IND)
 #define USF_MOUSE_EVENT    (1 << USF_MOUSE_EVENT_IND)
 #define USF_KEYBOARD_EVENT (1 << USF_KEYBOARD_EVENT_IND)
-#define USF_TSC_EXT_EVENT  (1 << USF_TSC_EXT_EVENT_IND)
 #define USF_ALL_EVENTS         (USF_TSC_EVENT |\
 				USF_TSC_PTR_EVENT |\
 				USF_MOUSE_EVENT |\
-				USF_KEYBOARD_EVENT |\
-				USF_TSC_EXT_EVENT)
+				USF_KEYBOARD_EVENT)
 
 /* min, max array dimension */
 #define MIN_MAX_DIM 2
@@ -100,10 +97,6 @@ enum us_detect_mode_enum {
 
 /* Max size of the client name */
 #define USF_MAX_CLIENT_NAME_SIZE	20
-
-/* Max number of the ports (mics/speakers) */
-#define USF_MAX_PORT_NUM                8
-
 /* Info structure common for TX and RX */
 struct us_xx_info_type {
 /* Input:  general info */
@@ -122,7 +115,7 @@ struct us_xx_info_type {
 /* Number of the microphones (TX) or speakers(RX) */
 	uint16_t port_cnt;
 /* Microphones(TX) or speakers(RX) indexes in their enumeration */
-	uint8_t  port_id[USF_MAX_PORT_NUM];
+	uint8_t  port_id[4];
 /* Bits per sample 16 or 32 */
 	uint16_t bits_per_sample;
 /* Input:  Transparent info for encoder in the LPASS */
@@ -130,6 +123,13 @@ struct us_xx_info_type {
 	uint16_t params_data_size;
 /* Pointer to the parameters */
 	uint8_t *params_data;
+};
+
+/* Input events sources */
+enum us_input_event_src_type {
+	US_INPUT_SRC_PEN,
+	US_INPUT_SRC_FINGER,
+	US_INPUT_SRC_UNDEF
 };
 
 struct us_input_info_type {
@@ -142,10 +142,10 @@ struct us_input_info_type {
 	int tsc_y_tilt[MIN_MAX_DIM];
 	/* Touch screen pressure limits: min & max; for input module */
 	int tsc_pressure[MIN_MAX_DIM];
-	/* The requested buttons bitmap */
-	uint16_t req_buttons_bitmap;
 	/* Bitmap of types of events (USF_X_EVENT), produced by calculator */
 	uint16_t event_types;
+	/* Input event source */
+	enum us_input_event_src_type event_src;
 	/* Bitmap of types of events from devs, conflicting with USF */
 	uint16_t conflicting_event_types;
 };
@@ -170,8 +170,6 @@ struct point_event_type {
 	int inclinations[TILTS_DIM];
 /* [0-1023] (10bits); 0 - pen up */
 	uint32_t pressure;
-/* Bitmap for button state. 1 - down, 0 - up */
-	uint16_t buttons_state_bitmap;
 };
 
 /* Mouse buttons, supported by USF */

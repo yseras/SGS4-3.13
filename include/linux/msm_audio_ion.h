@@ -13,11 +13,11 @@
 
 #ifndef _LINUX_MSM_AUDIO_ION_H
 #define _LINUX_MSM_AUDIO_ION_H
-/*#ifdef CONFIG_SND_SOC_QDSP6V2*/
+#ifdef CONFIG_SND_SOC_QDSP6V2
 #include <sound/q6asm-v2.h>
-/*#else
+#else
 #include <sound/q6asm.h>
-#endif*/
+#endif
 #include <sound/pcm.h>
 #include <linux/msm_ion.h>
 
