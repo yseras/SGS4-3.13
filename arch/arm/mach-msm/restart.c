@@ -91,7 +91,7 @@ static void set_dload_mode(int on)
 		writel_relaxed(on ? 0xE47B337D : 0, dload_mode_addr);
 		writel_relaxed(on ? 0xCE14091A : 0,
 		       dload_mode_addr + sizeof(unsigned int));
-		mb();
+		wmb();
 		dload_mode_enabled = on;
 	}
 }
@@ -116,7 +116,7 @@ static void enable_emergency_dload_mode(void)
 		/* Need disable the pmic wdt, then the emergency dload mode
 		 * will not auto reset. */
 		qpnp_pon_wd_config(0);
-		mb();
+		wmb();
 	}
 }
 
