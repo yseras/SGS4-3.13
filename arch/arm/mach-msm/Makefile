@@ -36,8 +36,9 @@ obj-$(CONFIG_CPU_V7) += idle-v7.o
 
 obj-$(CONFIG_ARCH_APQ8064) += acpuclock.o acpuclock-8064.o
 obj-$(CONFIG_ARCH_APQ8064) += devices-8960.o devices-8064.o
-obj-$(CONFIG_ARCH_APQ8064) += board-8064-regulator.o board-8064-pmic.o board-8064-display.o
-board-8064-all-objs += board-8064-gpiomux.o #board-8064.o board-8064-storage.o board-8064-camera.o board-8064-gpu.o
+obj-$(CONFIG_ARCH_APQ8064) += board-8064-regulator.o board-8064-pmic.o board-8064-storage.o \
+			      board-8064-display.o
+board-8064-all-objs += board-8064-gpiomux.o #board-8064.o board-8064-camera.o board-8064-gpu.o
 
 obj-$(CONFIG_ARCH_APQ8064) += gpiomux-v2.o gpiomux.o
 obj-$(CONFIG_ARCH_MSM8960) += gpiomux-v2.o gpiomux.o
