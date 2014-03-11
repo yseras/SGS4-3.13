@@ -1736,7 +1736,7 @@ static void mipi_dsi_wait4video_eng_busy(void)
 {
 	mipi_dsi_wait4video_done();
 	/* delay 4 ms to skip BLLP */
-	usleep(4000);
+	usleep_range(4000, 4000);
 }
 
 void mipi_dsi_cmd_mdp_busy(void)

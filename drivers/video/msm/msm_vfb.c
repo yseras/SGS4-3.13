@@ -547,10 +547,10 @@ static int msm_vfb_mmap(struct fb_info *info,
 	if (vma_size > (tot_buf_size - off)) {
 		pr_err("%s : vma is too big : req:%ld, real:%ld\n", __func__,
 			vma_size, tot_buf_size);
-		return -EINVAL;	
+		return -EINVAL;
 	}
 
-	vma->vm_flags    |= (VM_IO | VM_RESERVED);
+	vma->vm_flags    |= (VM_IO | VM_DONTEXPAND | VM_DONTDUMP); // Updated flags for 3.13 based on mm/vmalloc.c
 	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
 
 	data = kmalloc(sizeof(*data), GFP_KERNEL);

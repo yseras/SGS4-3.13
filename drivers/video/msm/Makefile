@@ -30,7 +30,7 @@ endif
 endif
 
 ifeq ($(CONFIG_FB_MSM_OVERLAY),y)
-obj-y += mdp4_overlay.o
+#obj-y += mdp4_overlay.o Comment this out for now
 obj-y += mdp4_overlay_lcdc.o
 ifeq ($(CONFIG_FB_MSM_MIPI_DSI),y)
 obj-y += mdp4_overlay_dsi_video.o
@@ -52,11 +52,11 @@ endif
 obj-y += mdp_dma.o
 obj-y += mdp_dma_s.o
 obj-y += mdp_vsync.o
-obj-y += mdp_cursor.o
+#obj-y += mdp_cursor.o Comment this out for now
 obj-y += mdp_dma_tv.o
 obj-$(CONFIG_ARCH_MSM7X27A) += msm_dss_io_7x27a.o
 obj-$(CONFIG_ARCH_MSM8X60) += msm_dss_io_8x60.o
-obj-$(CONFIG_ARCH_MSM8960) += msm_dss_io_8960.o
+#obj-$(CONFIG_ARCH_MSM8960) += msm_dss_io_8960.o Comment this out for now
 
 # EBI2
 obj-$(CONFIG_FB_MSM_EBI2) += ebi2_lcd.o
@@ -76,7 +76,7 @@ msm_mddi_ext-objs := mddihost_e.o mddi_ext.o
 obj-$(CONFIG_FB_MSM_EXTMDDI) += msm_mddi_ext.o
 
 # MIPI gereric
-msm_mipi-objs := mipi_dsi.o mipi_dsi_host.o
+msm_mipi-objs := mipi_dsi_host.o #mipi_dsi.o
 obj-$(CONFIG_FB_MSM_MIPI_DSI) += msm_mipi.o
 
 # MIPI manufacture
@@ -177,8 +177,8 @@ obj-$(CONFIG_FB_MSM_HDMI_ADV7520_PANEL) += adv7520.o
 obj-$(CONFIG_FB_MSM_LCDC_ST15_WXGA) += lcdc_st15.o
 obj-$(CONFIG_FB_MSM_LVDS_CHIMEI_WXGA) += lvds_chimei_wxga.o
 obj-$(CONFIG_FB_MSM_LVDS_FRC_FHD) += lvds_frc_fhd.o
-obj-$(CONFIG_FB_MSM_HDMI_MSM_PANEL) += hdmi_msm.o
-obj-$(CONFIG_FB_MSM_EXT_INTERFACE_COMMON) += external_common.o
+obj-$(CONFIG_FB_MSM_HDMI_MSM_PANEL) += #hdmi_msm.o Comment out for now
+obj-$(CONFIG_FB_MSM_EXT_INTERFACE_COMMON) += #external_common.o Comment out for now
 obj-$(CONFIG_FB_MSM_LCDC_TRULY_HVGA_IPS3P2335) += lcdc_truly_ips3p2335.o
 
 obj-$(CONFIG_FB_MSM_TVOUT) += tvout_msm.o

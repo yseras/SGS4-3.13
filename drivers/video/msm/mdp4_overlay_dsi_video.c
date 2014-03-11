@@ -1186,7 +1186,7 @@ static void mdp4_dsi_video_do_blt(struct msm_fb_data_type *mfd, int enable)
 			 * lanes in stop state befroe reset
 			 * controller
 			 */
-			usleep(2000);
+			usleep_range(2000, 2000);
 			mipi_dsi_sw_reset();
 			MDP_OUTP(MDP_BASE + DSI_VIDEO_BASE, 1);
 		}

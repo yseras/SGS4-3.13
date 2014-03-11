@@ -26,7 +26,7 @@
 #include <mach/msm_hdmi_audio.h>
 #include <mach/clk.h>
 #include <mach/msm_iomap.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/socinfo.h>
 
 #include "msm_fb.h"
 #include "hdmi_msm.h"

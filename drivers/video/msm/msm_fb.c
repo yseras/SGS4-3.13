@@ -1148,7 +1148,7 @@ static int msm_fb_mmap(struct fb_info *info, struct vm_area_struct * vma)
 	off += start;
 	vma->vm_pgoff = off >> PAGE_SHIFT;
 	/* This is an IO map - tell maydump to skip this VMA */
-	vma->vm_flags |= VM_IO | VM_RESERVED;
+	vma->vm_flags |= VM_IO | VM_DONTEXPAND | VM_DONTDUMP; // Updated flags for 3.13 based on mm/vmalloc.c
 
 	/* Set VM page protection */
 	if (mfd->mdp_fb_page_protection == MDP_FB_PAGE_PROTECTION_WRITECOMBINE)
@@ -2083,8 +2083,8 @@ static int msm_fb_pan_display_sub(struct fb_var_screeninfo *var,
 
 	mdp_dma_pan_update(info);
 	msm_fb_signal_timeline(mfd);
-	if (mdp4_unmap_sec_resource(mfd))
-		pr_err("%s: unmap secure res failed\n", __func__);
+	/*if (mdp4_unmap_sec_resource(mfd))
+		pr_err("%s: unmap secure res failed\n", __func__);*/
 
 	up(&msm_fb_pan_sem);
 
@@ -2891,12 +2891,14 @@ static inline void msm_dma_wt_pre(void)
 }
 static inline void msm_dma_todevice_wb_pre(void *start, size_t size)
 {
-	dma_cache_pre_ops(start, size, DMA_TO_DEVICE);
+	//dma_cache_pre_ops(start, size, DMA_TO_DEVICE);
+	dmb();
 }
 
 static inline void msm_dma_fromdevice_wb_pre(void *start, size_t size)
 {
-	dma_cache_pre_ops(start, size, DMA_FROM_DEVICE);
+	//dma_cache_pre_ops(start, size, DMA_FROM_DEVICE);
+	dmb();
 }
 
 static inline void msm_dma_nc_post(void)
@@ -2906,17 +2908,20 @@ static inline void msm_dma_nc_post(void)
 
 static inline void msm_dma_fromdevice_wt_post(void *start, size_t size)
 {
-	dma_cache_post_ops(start, size, DMA_FROM_DEVICE);
+	//dma_cache_post_ops(start, size, DMA_FROM_DEVICE);
+	dmb();
 }
 
 static inline void msm_dma_todevice_wb_post(void *start, size_t size)
 {
-	dma_cache_post_ops(start, size, DMA_TO_DEVICE);
+	//dma_cache_post_ops(start, size, DMA_TO_DEVICE);
+	dmb();
 }
 
 static inline void msm_dma_fromdevice_wb_post(void *start, size_t size)
 {
-	dma_cache_post_ops(start, size, DMA_FROM_DEVICE);
+	//dma_cache_post_ops(start, size, DMA_FROM_DEVICE);
+	dmb();
 }
 
 /*
