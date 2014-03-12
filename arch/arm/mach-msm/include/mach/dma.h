@@ -273,8 +273,15 @@ void msm_dmov_stop_cmd(unsigned id, struct msm_dmov_cmd *cmd, int graceful) { }
 #define DMOV8064_CE_OUT_CHAN       1
 #define DMOV8064_CE_OUT_CRCI       15
 
-#define DMOV8064_TSIF_CHAN         4
+#define DMOV8064_TSIF_CHAN         2
 #define DMOV8064_TSIF_CRCI         1
+
+/* channels for APQ8064 SGLTE*/
+#define DMOV_APQ8064_HSUART_GSBI4_TX_CHAN	11
+#define DMOV_APQ8064_HSUART_GSBI4_TX_CRCI	8
+
+#define DMOV_APQ8064_HSUART_GSBI4_RX_CHAN	10
+#define DMOV_APQ8064_HSUART_GSBI4_RX_CRCI	7
 
 /* channels for MPQ8064 */
 #define DMOV_MPQ8064_HSUART_GSBI6_TX_CHAN	7
