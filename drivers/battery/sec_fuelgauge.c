@@ -10,6 +10,7 @@
  * published by the Free Software Foundation.
  */
 #include <linux/battery/sec_fuelgauge.h>
+#include <linux/wakelock.h>
 static struct device_attribute sec_fg_attrs[] = {
 	SEC_FG_ATTR(reg),
 	SEC_FG_ATTR(data),
@@ -407,7 +408,7 @@ static int __devinit sec_fuelgauge_probe(struct i2c_client *client,
 	}
 
 	if (fuelgauge->pdata->fg_irq) {
-		INIT_DELAYED_WORK_DEFERRABLE(
+		INIT_DEFERRABLE_WORK(
 			&fuelgauge->isr_work, sec_fg_isr_work);
 
 		ret = request_threaded_irq(fuelgauge->pdata->fg_irq,
