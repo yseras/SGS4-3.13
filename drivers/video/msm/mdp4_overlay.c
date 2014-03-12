@@ -3543,6 +3543,7 @@ static int get_img(struct msmfb_data *img, struct fb_info *info,
 	else
 		return -EINVAL;
 #endif
+	return 0;
 }
 
 #ifdef CONFIG_FB_MSM_MIPI_DSI
