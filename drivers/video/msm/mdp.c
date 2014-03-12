@@ -2670,7 +2670,7 @@ unsigned long mdp_get_core_clk(void)
 static int mdp_irq_clk_setup(struct platform_device *pdev,
 	char cont_splashScreen)
 {
-	int ret;
+	int ret, ret2;
 
 #ifdef CONFIG_FB_MSM_MDP40
 	ret = request_irq(mdp_irq, mdp4_isr, IRQF_DISABLED, "MDP", 0);
@@ -2715,8 +2715,12 @@ static int mdp_irq_clk_setup(struct platform_device *pdev,
 	if (IS_ERR(footswitch)) {
 		footswitch = NULL;
 	} else {
-		regulator_enable(footswitch);
-		mdp_footswitch_on = 1;
+		ret2 = regulator_enable(footswitch);
+		if (ret2) {
+			printk(KERN_ERR "Regulator enable failed in %s \n", __func__ );
+		} else {
+			mdp_footswitch_on = 1;
+		}
 	}
 
 	mdp_clk = clk_get(&pdev->dev, "core_clk");
@@ -3270,6 +3274,8 @@ static int mdp_probe(struct platform_device *pdev)
 
 void mdp_footswitch_ctrl(boolean on)
 {
+	int ret, ret2, ret3; /* Return statuses for regulator_enable */
+
 	mutex_lock(&mdp_suspend_mutex);
 	if (!mdp_suspended || mdp4_extn_disp || !footswitch ||
 		mdp_rev <= MDP_REV_41) {
@@ -3277,25 +3283,30 @@ void mdp_footswitch_ctrl(boolean on)
 		return;
 	}
 
-	if (dsi_pll_vddio)
-		regulator_enable(dsi_pll_vddio);
+	if (likely(dsi_pll_vddio))
+		ret = regulator_enable(dsi_pll_vddio);
 
-	if (dsi_pll_vdda)
-		regulator_enable(dsi_pll_vdda);
+	if (likely(dsi_pll_vdda))
+		ret2 = regulator_enable(dsi_pll_vdda);
 
 	mipi_dsi_prepare_ahb_clocks();
 	mipi_dsi_ahb_ctrl(1);
 	mipi_dsi_phy_ctrl(1);
 	mipi_dsi_clk_enable();
 
+
 	if (on && !mdp_footswitch_on) {
 		pr_debug("Enable MDP FS\n");
-		regulator_enable(footswitch);
+		ret3 = regulator_enable(footswitch);
 		mdp_footswitch_on = 1;
 	} else if (!on && mdp_footswitch_on) {
 		pr_debug("Disable MDP FS\n");
 		regulator_disable(footswitch);
 		mdp_footswitch_on = 0;
+	}
+
+	if (unlikely(ret) || unlikely(ret2) || ret3) {
+		printk(KERN_ERR "Regulator enable failed in %s \n", __func__);
 	}
 
 	mipi_dsi_clk_disable();
@@ -3304,10 +3315,10 @@ void mdp_footswitch_ctrl(boolean on)
 	mipi_dsi_ahb_ctrl(0);
 	mipi_dsi_unprepare_ahb_clocks();
 
-	if (dsi_pll_vdda)
+	if (likely(dsi_pll_vdda))
 		regulator_disable(dsi_pll_vdda);
 
-	if (dsi_pll_vddio)
+	if (likely(dsi_pll_vddio))
 		regulator_disable(dsi_pll_vddio);
 
 	mutex_unlock(&mdp_suspend_mutex);
