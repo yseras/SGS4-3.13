@@ -5,7 +5,8 @@ menu "Mhl(sii8240) device support"
 
 config VIDEO_MHL_V2
 	bool "Samsung Mobile HD Link Interface"
-	depends on MSM_VIDC && ARCH_MSM
+	depends on ARCH_MSM
+	#depends on MSM_VIDC && ARCH_MSM
 	default n
 	---help---
 	Support for MHL version2 chipset driver. This is a new version of

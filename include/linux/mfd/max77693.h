@@ -28,8 +28,8 @@
 #ifndef __LINUX_MFD_MAX77693_H
 #define __LINUX_MFD_MAX77693_H
 
-#include <linux/regulator/consumer.h>
 #include <linux/battery/sec_charger.h>
+#include <linux/wakelock.h>
 
 enum {
 	MAX77693_MUIC_DETACHED = 0,

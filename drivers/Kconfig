@@ -182,4 +182,6 @@ source "drivers/soc/Kconfig"
 
 source "drivers/battery/Kconfig"
 
+source "drivers/barcode_emul/Kconfig"
+
 endmenu

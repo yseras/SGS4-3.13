@@ -1441,7 +1441,7 @@ static void sii8240_hw_onoff(bool onoff)
 		if (rc)
 			pr_err("error enabling regulator\n");
 
-		usleep(1*1000);
+		usleep_range(1*1000, 1*1000);
 		if (system_rev >= 6)
 			ice_gpiox_set(FPGA_VSIL_A_1P2_EN, 1);
 		if (system_rev >= 4 && system_rev < 6)

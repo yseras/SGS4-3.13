@@ -45,7 +45,7 @@
 #include "sii8240_driver.h"
 #include <linux/ctype.h>
 #ifdef SII8240_CHECK_MONITOR
-#include <mach/scm.h>
+#include <soc/qcom/scm.h>
 #endif
 #define CONFIG_MHL_SWING_LEVEL 0
 
