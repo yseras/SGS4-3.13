@@ -76,7 +76,7 @@ msm_mddi_ext-objs := mddihost_e.o mddi_ext.o
 obj-$(CONFIG_FB_MSM_EXTMDDI) += msm_mddi_ext.o
 
 # MIPI gereric
-msm_mipi-objs := mipi_dsi_host.o #mipi_dsi.o
+msm_mipi-objs := mipi_dsi_host.o mipi_dsi.o
 obj-$(CONFIG_FB_MSM_MIPI_DSI) += msm_mipi.o
 
 # MIPI manufacture

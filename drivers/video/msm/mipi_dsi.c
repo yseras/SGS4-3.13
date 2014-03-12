@@ -133,12 +133,12 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	mipi_dsi_unprepare_clocks();
 	mipi_dsi_unprepare_ahb_clocks();
 
-	usleep(5000);
+	usleep_range(5000, 5000);
 
 	if (mipi_dsi_pdata && mipi_dsi_pdata->active_reset)
 		mipi_dsi_pdata->active_reset(0); /* low */
 
-	usleep(2000); /*1ms delay(minimum) required between reset low and AVDD off*/
+	usleep_range(2000, 2000); /*1ms delay(minimum) required between reset low and AVDD off*/
 
 	if (mipi_dsi_pdata && mipi_dsi_pdata->panel_power_save)
 		mipi_dsi_pdata->panel_power_save(0);
@@ -194,19 +194,19 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	{
 		is_booting = 0;
 #if defined(CONFIG_MACH_JACTIVE_ATT)
-		usleep(5000);
+		usleep_range(5000, 5000);
 		if (mipi_dsi_pdata && mipi_dsi_pdata->active_reset)
 				mipi_dsi_pdata->active_reset(0); /* low */
-		usleep(2000);
+		usleep_range(2000, 2000);
 
 		if (mipi_dsi_pdata && mipi_dsi_pdata->panel_power_save)
 			mipi_dsi_pdata->panel_power_save(0);
 		msleep(10);
 #elif defined(CONFIG_MACH_JACTIVE_EUR)
-		usleep(5000);
+		usleep_range(5000, 5000);
 		if (mipi_dsi_pdata && mipi_dsi_pdata->active_reset)
 				mipi_dsi_pdata->active_reset(0); /* low */
-		usleep(2000);
+		usleep_range(2000, 2000);
 
 		if (mipi_dsi_pdata && mipi_dsi_pdata->panel_power_save)
 			mipi_dsi_pdata->panel_power_save(0);
@@ -321,10 +321,10 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	wmb();
 	/* LP11 */
 
-	usleep(5000);
+	usleep_range(5000, 5000);
 	if (mipi_dsi_pdata && mipi_dsi_pdata->active_reset)
 			mipi_dsi_pdata->active_reset(1); /* high */
-	usleep(10000);
+	usleep_range(10000, 10000);
 
 	/* always high */
 	if (mipi->force_clk_lane_hs) {
@@ -441,7 +441,7 @@ void esd_recovery(void)
 			wmb();
 			/* LP11 */
 
-			usleep(5000);
+			usleep_range(5000, 5000);
 			if (mipi_dsi_pdata && mipi_dsi_pdata->active_reset)
 				mipi_dsi_pdata->active_reset(1); /* high */
 			msleep(10);
