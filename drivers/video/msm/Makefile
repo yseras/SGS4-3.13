@@ -52,7 +52,7 @@ endif
 obj-y += mdp_dma.o
 obj-y += mdp_dma_s.o
 obj-y += mdp_vsync.o
-#obj-y += mdp_cursor.o Comment this out for now
+obj-y += mdp_cursor.o
 obj-y += mdp_dma_tv.o
 obj-$(CONFIG_ARCH_MSM7X27A) += msm_dss_io_7x27a.o
 obj-$(CONFIG_ARCH_MSM8X60) += msm_dss_io_8x60.o
