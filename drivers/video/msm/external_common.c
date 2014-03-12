@@ -2011,7 +2011,7 @@ static boolean check_edid_header(const uint8 *edid_buf)
 
 int hdmi_common_read_edid(void)
 {
-	int status = 0;
+	int i, status = 0;
 	uint32 cea_extension_ver = 0;
 	uint32 num_og_cea_blocks  = 0;
 	uint32 ieee_reg_id = 0;
@@ -2019,7 +2019,7 @@ int hdmi_common_read_edid(void)
 	/* EDID_BLOCK_SIZE[0x80] Each page size in the EDID ROM */
 	const u8 edid_signature[] = {0x00, 0xff, 0xff, 0xff,
 				     0xff, 0xff, 0xff, 0x00};
-	const uint8 *edid_buf = sii8240_get_mhl_edid();
+	uint8 *edid_buf = sii8240_get_mhl_edid();
 
 	/* Default 2ch-audio */
 	external_common_state->audio_speaker_data = 0;
