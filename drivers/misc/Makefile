@@ -54,3 +54,6 @@ obj-$(CONFIG_LATTICE_ECP3_CONFIG)	+= lattice-ecp3-config.o
 obj-$(CONFIG_SRAM)		+= sram.o
 obj-y				+= mic/
 obj-$(CONFIG_BCM2079X_NFC_I2C)	+= bcm2079x-i2c.o
+ifdef CONFIG_MACH_JF
+obj-$(CONFIG_MFD_MAX77693)      += max77693-muic.o
+endif
