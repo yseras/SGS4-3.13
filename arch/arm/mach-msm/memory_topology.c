@@ -103,7 +103,6 @@ int __init meminfo_init(unsigned int type, unsigned int min_bank_size)
 		return -EINVAL;
 	}
 
-
 	pr_info("meminfo_init: smem ram ptable found: ver: %d len: %d\n",
 			ram_ptable->version, ram_ptable->len);
 
