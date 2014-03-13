@@ -231,7 +231,7 @@ config MSM_AVS_HW
 
 config MSM_PROC_COMM
 	bool
-	depends on MSM_PROC_COMM && REGULATOR
+	depends on REGULATOR
 	help
 	  Enable regulator framework support for regulators managed by PMLIB
 	  on the modem, and controlled through proccomm calls.
