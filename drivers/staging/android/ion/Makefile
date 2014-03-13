@@ -6,5 +6,4 @@ ifdef CONFIG_COMPAT
 obj-$(CONFIG_ION) += compat_ion.o
 endif
 obj-$(CONFIG_ION_TEGRA) += tegra/
-#obj-$(CONFIG_ION_MSM) += ion_removed_heap.o
-obj-$(CONFIG_ION_MSM) += msm/
+obj-$(CONFIG_ION_MSM) += ion_removed_heap.o msm/

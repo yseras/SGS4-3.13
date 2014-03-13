@@ -4,11 +4,6 @@
 #include "../ion.h"
 #include "../../uapi/linux/msm_ion.h"
 
-enum ion_memory_types { /* Added for backwards compatibility with mach/ion.h */
-	ION_EBI_TYPE,
-	ION_SMI_TYPE,
-};
-
 enum ion_permission_type {
 	IPT_TYPE_MM_CARVEOUT = 0,
 	IPT_TYPE_MFC_SHAREDMEM = 1,

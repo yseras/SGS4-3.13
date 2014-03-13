@@ -21,6 +21,10 @@
 #include <mach/msm_memtypes.h>
 #include <mach/board.h>
 #include <mach/gpiomux.h>
+<<<<<<< HEAD
+=======
+#include <mach/ion.h>
+>>>>>>> parent of 0b8d59a... mach-msm: update linux/msm_ion.h and ion.h; stop using mach/ion.h;
 #include <mach/msm_bus_board.h>
 #include <soc/qcom/socinfo.h>
 
