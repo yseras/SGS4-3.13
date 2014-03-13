@@ -251,6 +251,10 @@ config MSM_PM
 	depends on PM
 	bool
 
+config MSM_PM8X60
+	depends on PM
+	bool
+
 config MSM_BUS_SCALING
 	bool "Bus scaling driver"
 	default n

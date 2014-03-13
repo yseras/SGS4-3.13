@@ -224,6 +224,13 @@ struct msm_camera_i2c_conf {
 	enum msm_camera_i2c_mux_mode i2c_mux_mode;
 };
 
+enum msm_camera_vreg_name_t {
+	CAM_VDIG,
+	CAM_VIO,
+	CAM_VANA,
+	CAM_VAF,
+};
+#if defined(CONFIG_MACH_MELIUS)
 struct msm_camera_sensor_platform_info {
 	int mount_angle;
 	int sensor_reset;
@@ -233,7 +240,53 @@ struct msm_camera_sensor_platform_info {
 	struct msm_camera_gpio_conf *gpio_conf;
 	struct msm_camera_i2c_conf *i2c_conf;
 	struct msm_camera_csi_lane_params *csi_lane_params;
+	int sensor_reset_enable;
+	int sensor_stby;
+	int vt_sensor_reset;
+	int vt_sensor_stby;
+	int flash_en;
+	int flash_set;
+	int mclk;
+	int sensor_pwd;
+	int vcm_pwd;
+	int vcm_enable;
+	int privacy_light;
+	void *privacy_light_info;
+	void(*sensor_power_on) (int);
+	void(*sensor_power_off) (int);
+	void(*sensor_isp_reset) (void);
+	void(*sensor_get_fw) (u8 *isp_fw, u8 *phone_fw);
+	void(*sensor_set_isp_core) (int);
+	bool(*sensor_is_vdd_core_set) (void);
 };
+#else
+struct msm_camera_sensor_platform_info {
+	int mount_angle;
+	int sensor_reset;
+	struct camera_vreg_t *cam_vreg;
+	int num_vreg;
+	int32_t (*ext_power_ctrl) (int enable);
+	struct msm_camera_gpio_conf *gpio_conf;
+	struct msm_camera_i2c_conf *i2c_conf;
+	struct msm_camera_csi_lane_params *csi_lane_params;
+	void(*sensor_power_on)(void);
+	void(*sensor_power_off)(void);
+#if defined(CONFIG_MACH_JACTIVE_ATT) || defined(CONFIG_MACH_JACTIVE_EUR)
+	void(*sensor_power_on_sub)(void);
+	void(*sensor_power_off_sub)(void);	
+#endif	
+	void(*sensor_af_power_off)(void);
+	void(*sensor_vddio_power_off)(void);
+	void(*sensor_pmic_gpio_ctrl)(int, int);
+	int (*config_isp_irq)(void);
+	int (*config_sambaz)(int);
+	int irq;
+	int irq_gpio;
+	int reset;
+	int stby;
+	int (*sys_rev)(void);
+};
+#endif
 
 enum msm_camera_actuator_name {
 	MSM_ACTUATOR_MAIN_CAM_0,

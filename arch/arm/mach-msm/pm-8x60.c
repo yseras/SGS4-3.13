@@ -29,13 +29,12 @@
 #include <linux/platform_device.h>
 #include <linux/of_platform.h>
 #include <mach/msm_iomap.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/socinfo.h>
 #include <mach/system.h>
-#include <mach/scm.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/scm.h>
 #include <mach/msm-krait-l2-accessors.h>
 #include <asm/cacheflush.h>
-#include <asm/hardware/gic.h>
+#include <linux/irqchip/arm-gic.h>
 #include <asm/pgtable.h>
 #include <asm/pgalloc.h>
 #include <asm/hardware/cache-l2x0.h>
@@ -45,7 +44,7 @@
 
 #include "acpuclock.h"
 #include "clock.h"
-#include "avs.h"
+#include <mach/avs.h>
 #include <mach/cpuidle.h>
 #include "idle.h"
 #include "pm.h"
@@ -55,13 +54,17 @@
 #include "timer.h"
 #include "pm-boot.h"
 #include <mach/event_timer.h>
-#ifdef CONFIG_SEC_DEBUG
+#include <linux/cpu_pm.h>
+#if defined(CONFIG_SEC_DEBUG)
 #include <mach/sec_debug.h>
 #endif
 #include <linux/regulator/consumer.h>
 #include <mach/gpiomux.h>
 #include <linux/mfd/pm8xxx/pm8921.h>
-#include <linux/cpu_pm.h>
+
+#ifdef CONFIG_SEC_GPIO_DVS
+#include <linux/secgpio_dvs.h>
+#endif
 
 /******************************************************************************
  * Debug Definitions
@@ -84,7 +87,6 @@ module_param_named(
 	debug_mask, msm_pm_debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP
 );
 static int msm_pm_retention_tz_call;
-static struct msm_pm_sleep_status_data *msm_pm_slp_sts;
 
 /******************************************************************************
  * Sleep Modes and Parameters
@@ -574,7 +576,7 @@ static bool __ref msm_pm_spm_power_collapse(
 #ifdef CONFIG_VFP
 	vfp_pm_suspend();
 #endif
-#ifdef CONFIG_SEC_DEBUG
+#if defined(CONFIG_SEC_DEBUG)
 	secdbg_sched_msg("+pc(I:%d,R:%d)", from_idle, notify_rpm);
 	collapsed = msm_pm_l2x0_power_collapse();
 	secdbg_sched_msg("-pc(%d)", collapsed);
@@ -1147,6 +1149,14 @@ static int msm_pm_prepare_late(void)
 		pm_mpp_dbg_showall(0);
 	}
 
+#ifdef CONFIG_SEC_GPIO_DVS
+	/************************ Caution !!! ****************************/
+	/* This function must be located in appropriate SLEEP position
+	 * in accordance with the specification of each BB vendor.
+	 */
+	/************************ Caution !!! ****************************/
+	gpio_dvs_check_sleepgpio();
+#endif
 	return 0;
 }
 
@@ -1376,6 +1386,7 @@ static int __init msm_pm_init(void)
 				msm_cpu_status_driver.driver.name);
 		return rc;
 	}
+
 
 	return 0;
 }
