@@ -2710,7 +2710,7 @@ unsigned long mdp_get_core_clk(void)
 static int mdp_irq_clk_setup(struct platform_device *pdev,
 	char cont_splashScreen)
 {
-	int ret, ret2;
+	int ret, ret2, ret3;
 
 #ifdef CONFIG_FB_MSM_MDP40
 	ret = request_irq(mdp_irq, mdp4_isr, IRQF_DISABLED, "MDP", 0);
@@ -2727,16 +2727,21 @@ static int mdp_irq_clk_setup(struct platform_device *pdev,
 	if (IS_ERR(footswitch))
 		footswitch = NULL;
 	else {
-		regulator_enable(footswitch);
+		ret2 = regulator_enable(footswitch);
+
+		if (ret2) {
+			printk(KERN_ERR "Regulator enable failed in %s \n", __func__ );
+		}
+
 		mdp_footswitch_on = 1;
 
 		if (mdp_rev == MDP_REV_42 && !cont_splashScreen) {
 			regulator_disable(footswitch);
 			msleep(20);
-			
-			ret2 = regulator_enable(footswitch);
 
-			if (ret2) {
+			ret3 = regulator_enable(footswitch);
+
+			if (ret3) {
 				printk(KERN_ERR "Regulator enable failed in %s \n", __func__ );
 			}
 		}
