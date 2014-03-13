@@ -50,8 +50,6 @@ static struct mipi_samsung_driver_data msd;
 static int lcd_attached = 1;
 struct mutex dsi_tx_mutex;
 int touch_display_status;
-static int panel_colors = 2;
-extern void panel_load_colors(unsigned int value, struct SMART_DIM *pSmart);
 DEFINE_MUTEX(brightness_mutex);
 
 #if defined(RUMTIME_MIPI_CLK_CHANGE)
@@ -98,8 +96,13 @@ static int mipi_samsung_disp_send_cmd(struct msm_fb_data_type *mfd,
 		if (lock)
 			mutex_lock(&mfd->dma->ov_mutex);
 	}
+	cmdreq.flags =	CMD_REQ_COMMIT;
 
 		switch (cmd) {
+		case PANEL_READY_TO_ON:
+			cmd_desc = msd.mpd->ready_to_on.cmd;
+			cmd_size = msd.mpd->ready_to_on.size;
+			break;
 		case PANEL_ON:
 			cmd_desc = msd.mpd->on.cmd;
 			cmd_size = msd.mpd->on.size;
@@ -119,6 +122,7 @@ static int mipi_samsung_disp_send_cmd(struct msm_fb_data_type *mfd,
 		case PANEL_BRIGHT_CTRL:
 			cmd_desc = msd.mpd->brightness.cmd;
 			cmd_size = msd.mpd->brightness.size;
+			cmdreq.flags =  CMD_REQ_SINGLE_TX |CMD_REQ_COMMIT;
 			break;
 		case PANEL_MTP_ENABLE:
 			cmd_desc = msd.mpd->mtp_enable.cmd;
@@ -168,7 +172,6 @@ static int mipi_samsung_disp_send_cmd(struct msm_fb_data_type *mfd,
 
 	cmdreq.cmds = cmd_desc;
 	cmdreq.cmds_cnt = cmd_size;
-	cmdreq.flags = CMD_REQ_COMMIT;
 	cmdreq.rlen = 0;
 	cmdreq.cb = NULL;
 
@@ -458,7 +461,11 @@ static void execute_panel_init(struct msm_fb_data_type *mfd)
 	char *mtp_buffer4 = (char *)&(msd.mpd->smart_se6e8fa.hbm_reg.b1_reg);
 	char *mtp_buffer5 = (char *)&(msd.mpd->smart_se6e8fa.hbm_reg.b6_reg_magna);
 
-	mipi_samsung_disp_send_cmd(mfd, PANEL_MTP_ENABLE, false);
+	if (get_ldi_chip() == LDI_MAGNA) {
+		mipi_set_tx_power_mode(LP_TX_MODE);
+		mipi_samsung_disp_send_cmd(mfd, PANEL_MTP_ENABLE, false);
+	} else
+		mipi_samsung_disp_send_cmd(mfd, PANEL_MTP_ENABLE, false);
 
 	/* read LDi ID */
 	msd.mpd->manufacture_id = mipi_samsung_manufacture_id(mfd);
@@ -574,6 +581,7 @@ static int mipi_samsung_disp_on(struct platform_device *pdev)
 	struct msm_fb_data_type *mfd;
 	struct mipi_panel_info *mipi;
 	static int first_boot_on;
+	u32 tmp;
 
 	mfd = platform_get_drvdata(pdev);
 	if (unlikely(!mfd))
@@ -586,6 +594,20 @@ static int mipi_samsung_disp_on(struct platform_device *pdev)
 	if (!first_boot_on) {
 		execute_panel_init(mfd);
 		first_boot_on = 1;
+	}
+
+	if (get_ldi_chip() == LDI_MAGNA) {
+		mipi_set_tx_power_mode(LP_TX_MODE);
+		mipi_samsung_disp_send_cmd(mfd, PANEL_READY_TO_ON, false);
+		mipi_set_tx_power_mode(HS_TX_MODE);
+
+		/* force dsi_clk alway on 
+		*    Magan nees clk lane LP mode before sending 0xF0 & 0xFC & 0xD2 cmds
+		*/
+		tmp = MIPI_INP(MIPI_DSI_BASE + 0xA8);
+		tmp |= (1<<28);
+		MIPI_OUTP(MIPI_DSI_BASE + 0xA8, tmp);
+		wmb();
 	}
 
 	if (get_auto_brightness() >= 6)
@@ -1137,32 +1159,6 @@ static ssize_t mipi_samsung_temperature_store(struct device *dev,
 	return size;
 }
 
-static ssize_t panel_colors_show(struct device *dev, struct device_attribute *attr, char *buf)
-{
-	return sprintf(buf, "%d\n", panel_colors);
-}
-
-static ssize_t panel_colors_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
-{
-	int ret;
-	unsigned int value;
-
-	ret = sscanf(buf, "%d\n", &value);
-	if (ret != 1)
-		return -EINVAL;
-
-	if (value < 0)
-		value = 0;
-	else if (value > 4)
-		value = 4;
-
-	panel_colors = value;
-
-	panel_load_colors(panel_colors, &(msd.mpd->smart_se6e8fa));
-
-	return size;
-}
-
 static DEVICE_ATTR(lcd_power, S_IRUGO | S_IWUSR,
 		mipi_samsung_disp_get_power,
 		mipi_samsung_disp_set_power);
@@ -1194,9 +1190,6 @@ static DEVICE_ATTR(fps_change, S_IRUGO | S_IWUSR | S_IWGRP,
 static DEVICE_ATTR(temperature, S_IRUGO | S_IWUSR | S_IWGRP,
 			mipi_samsung_temperature_show,
 			mipi_samsung_temperature_store);
-
-static DEVICE_ATTR(panel_colors, S_IRUGO | S_IWUSR | S_IWGRP,
-			panel_colors_show, panel_colors_store);
 
 #ifdef DDI_VIDEO_ENHANCE_TUNING
 #define MAX_FILE_NAME 128
@@ -1522,13 +1515,6 @@ static int __devinit mipi_samsung_disp_probe(struct platform_device *pdev)
 	if (ret) {
 		pr_info("sysfs create fail-%s\n",
 				dev_attr_temperature.attr.name);
-	}
-
-	ret = sysfs_create_file(&lcd_device->dev.kobj,
-						&dev_attr_panel_colors.attr);
-	if (ret) {
-		pr_info("sysfs create fail-%s\n",
-				dev_attr_panel_colors.attr.name);
 	}
 
 	printk(KERN_INFO "[lcd] backlight_device_register for panel start\n");

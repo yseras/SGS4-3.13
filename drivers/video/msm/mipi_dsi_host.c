@@ -40,7 +40,9 @@
 #include "mipi_dsi.h"
 #include "mdp.h"
 #include "mdp4.h"
+#ifdef CONFIG_SEC_DEBUG_MDP
 #include "sec_debug_mdp.h"
+#endif
 
 static struct completion dsi_dma_comp;
 static struct completion dsi_mdp_comp;
@@ -58,7 +60,10 @@ static struct mutex clk_mutex;
 static struct list_head pre_kickoff_list;
 static struct list_head post_kickoff_list;
 
+struct work_struct mdp_reset_work;
+#ifdef CONFIG_SEC_DEBUG_MDP
 extern struct sec_debug_mdp sec_debug_mdp;
+#endif
 
 void mipi_dsi_configure_dividers(int fps);
 
@@ -107,6 +112,11 @@ void mipi_dsi_mdp_stat_inc(int which)
 }
 #endif
 
+static void mdp_reset_wq_handler(struct work_struct *work)
+{
+	mdp4_mixer_reset(0);
+}
+
 void mipi_dsi_init(void)
 {
 	init_completion(&dsi_dma_comp);
@@ -119,6 +129,7 @@ void mipi_dsi_init(void)
 	spin_lock_init(&dsi_clk_lock);
 	mutex_init(&cmd_mutex);
 	mutex_init(&clk_mutex);
+	INIT_WORK(&mdp_reset_work, mdp_reset_wq_handler);
 
 	INIT_LIST_HEAD(&pre_kickoff_list);
 	INIT_LIST_HEAD(&post_kickoff_list);
@@ -195,7 +206,7 @@ void mipi_dsi_clk_cfg(int on)
 	mutex_lock(&clk_mutex);
 	if (on) {
 		if (dsi_clk_cnt == 0) {
-			mipi_dsi_prepare_ahb_clocks();
+			mipi_dsi_prepare_clocks();
 			mipi_dsi_ahb_ctrl(1);
 			mipi_dsi_clk_enable();
 		}
@@ -205,9 +216,8 @@ void mipi_dsi_clk_cfg(int on)
 			dsi_clk_cnt--;
 			if (dsi_clk_cnt == 0) {
 				mipi_dsi_clk_disable();
-				mipi_dsi_unprepare_clocks();
 				mipi_dsi_ahb_ctrl(0);
-				mipi_dsi_unprepare_ahb_clocks();
+				mipi_dsi_unprepare_clocks();
 			}
 		}
 	}
@@ -218,7 +228,6 @@ void mipi_dsi_clk_cfg(int on)
 
 void mipi_dsi_turn_on_clks(void)
 {
-	mipi_dsi_prepare_ahb_clocks();
 	mipi_dsi_ahb_ctrl(1);
 	mipi_dsi_clk_enable();
 }
@@ -226,9 +235,7 @@ void mipi_dsi_turn_on_clks(void)
 void mipi_dsi_turn_off_clks(void)
 {
 	mipi_dsi_clk_disable();
-	mipi_dsi_unprepare_clocks();
 	mipi_dsi_ahb_ctrl(0);
-	mipi_dsi_unprepare_ahb_clocks();
 }
 
 static void mipi_dsi_action(struct list_head *act_list)
@@ -925,9 +932,14 @@ void mipi_dsi_host_init(struct mipi_panel_info *pinfo)
 	if (pinfo->data_lane0)
 		dsi_ctrl |= BIT(4);
 
-	/* from frame buffer, low power mode */
-	/* DSI_COMMAND_MODE_DMA_CTRL */
-	MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x10000000);
+#if defined(CONFIG_MIPI_DSI_LP_CMD_SEND)
+		/* from frame buffer, low power mode */
+		/* DSI_COMMAND_MODE_DMA_CTRL */
+		MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x14000000);
+#else
+		/* send commands in High Speed Mode */
+		MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x10000000);
+#endif
 
 	data = 0;
 	if (pinfo->te_sel)
@@ -1040,7 +1052,8 @@ void mipi_dsi_op_mode_config(int mode)
 	dsi_ctrl &= ~0x07;
 	if (mode == DSI_VIDEO_MODE) {
 		dsi_ctrl |= 0x03;
-		intr_ctrl = DSI_INTR_CMD_DMA_DONE_MASK;
+		intr_ctrl = (DSI_INTR_CMD_DMA_DONE_MASK |
+					DSI_INTR_VIDEO_DONE_MASK);
 	} else {		/* command mode */
 		dsi_ctrl |= 0x05;
 		intr_ctrl = DSI_INTR_CMD_DMA_DONE_MASK | DSI_INTR_ERROR_MASK |
@@ -1231,6 +1244,10 @@ int mipi_dsi_cmds_single_tx(struct dsi_buf *tp, struct dsi_cmd_desc *cmds,
 	int i, j = 0, k = 0, cmd_len = 0, video_mode;
 	char *cmds_tx;
 	char *bp;
+	if (tp == NULL || cmds == NULL) {
+		pr_err("%s: Null commands", __func__);
+		return -EINVAL;
+	}
 	pr_debug("%s:++\n",__func__);
 
 	/*Set Last Bit, only for last packet */
@@ -1917,6 +1934,11 @@ void mipi_dsi_ack_err_status(void)
 #ifdef CONFIG_SEC_DEBUG_MDP
 		sec_debug_mdp.dsi_err.mipi_dsi_ack_err_status = status;
 #endif
+		/*
+		 * base on hw enginner, write an extra 0 needed
+		 * to clear error bits
+		 */
+		MIPI_OUTP(MIPI_DSI_BASE + 0x0064, ~status);
 		pr_debug("%s: status=%x\n", __func__, status);
 	}
 }
@@ -1961,7 +1983,9 @@ void mipi_dsi_fifo_status(void)
 #ifdef CONFIG_SEC_DEBUG_MDP
 		sec_debug_mdp.dsi_err.mipi_dsi_fifo_status = status;
 #endif
-		pr_debug("%s: status=%x\n", __func__, status);
+		pr_err("%s: Error: status=%x\n", __func__, status);
+		mipi_dsi_sw_reset();
+		schedule_work(&mdp_reset_work);
 	}
 }
 

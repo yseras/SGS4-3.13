@@ -423,11 +423,13 @@ int mdp4_wfd_pipe_commit(struct msm_fb_data_type *mfd,
 		}
 	}
 
-	mdp_clk_ctrl(1);
-
 	mdp4_mixer_stage_commit(mixer);
 
 	pipe = vctrl->base_pipe;
+	if (!pipe->ov_blt_addr) {
+		schedule_work(&vctrl->clk_work);
+		return cnt;
+	}
 	spin_lock_irqsave(&vctrl->spin_lock, flags);
 	vctrl->ov_koff++;
 	INIT_COMPLETION(vctrl->ov_comp);
@@ -539,6 +541,7 @@ void mdp4_writeback_overlay(struct msm_fb_data_type *mfd)
 	mdp4_overlay_mdp_perf_upd(mfd, 0);
 
 	mutex_unlock(&mfd->dma->ov_mutex);
+
 }
 
 static int mdp4_overlay_writeback_register_buffer(
