@@ -30,7 +30,7 @@ endif
 endif
 
 ifeq ($(CONFIG_FB_MSM_OVERLAY),y)
-#obj-y += mdp4_overlay.o Comment this out for now
+obj-y += mdp4_overlay.o
 obj-y += mdp4_overlay_lcdc.o
 ifeq ($(CONFIG_FB_MSM_MIPI_DSI),y)
 obj-y += mdp4_overlay_dsi_video.o
