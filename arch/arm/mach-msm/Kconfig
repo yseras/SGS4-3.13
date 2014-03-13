@@ -220,11 +220,21 @@ config MSM_CPU_FREQ_MIN
 
 endif # CPU_FREQ_MSM
 
-config MSM_SMD_PKG3
-	bool
+config MSM_AVS_HW
+	bool "Enable Adaptive Voltage Scaling (AVS)"
+	default n
+	help
+	  Enable AVS hardware to fine tune voltage at each frequency. The
+	  AVS hardware blocks associated with each Qualcomm ARMv7 cores can
+	  fine tune the voltages based on the feedback from the ring
+	  oscillators.
 
 config MSM_PROC_COMM
 	bool
+	depends on MSM_PROC_COMM && REGULATOR
+	help
+	  Enable regulator framework support for regulators managed by PMLIB
+	  on the modem, and controlled through proccomm calls.
 
 config MSM_SMD
 	depends on MSM_SMEM
