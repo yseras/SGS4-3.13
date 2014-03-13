@@ -19,7 +19,7 @@
 #include <mach/camera.h>
 #include <mach/msm_bus_board.h>
 #include <mach/gpiomux.h>
-#include <mach/socinfo.h>
+#include <soc/qcom/socinfo.h>
 
 #if defined(CONFIG_MACH_JACTIVE_ATT) || defined(CONFIG_MACH_JACTIVE_EUR)
 #include <mach/pmic.h>
