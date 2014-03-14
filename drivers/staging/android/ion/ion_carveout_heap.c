@@ -32,6 +32,13 @@
 #include <asm/cacheflush.h>
 #include <linux/msm_ion.h>
 
+/*
+ * Undefining these kernel macros because they interfere
+ * with carveout_request_region and carveout_release_region
+ */
+#undef request_region
+#undef release_region
+
 struct ion_carveout_heap {
 	struct ion_heap heap;
 	struct gen_pool *pool;
@@ -183,7 +190,7 @@ void *ion_carveout_heap_map_kernel(struct ion_heap *heap,
 		return NULL;
 
 	if (ION_IS_CACHED(buffer->flags))
-		ret_value = ioremap_cached(buffer->priv_phys, buffer->size);
+		ret_value = ioremap_cache(buffer->priv_phys, buffer->size);
 	else
 		ret_value = ioremap(buffer->priv_phys, buffer->size);
 

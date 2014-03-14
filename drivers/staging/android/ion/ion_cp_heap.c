@@ -32,7 +32,7 @@
 #include <asm/mach/map.h>
 
 #include <mach/msm_memtypes.h>
-#include <mach/scm.h>
+#include <soc/qcom/scm.h>
 #include <mach/iommu_domains.h>
 
 #include "ion_priv.h"
@@ -547,8 +547,8 @@ void *ion_map_fmem_buffer(struct ion_buffer *buffer, unsigned long phys_base,
 	if (phys_base > buffer->priv_phys)
 		return NULL;
 
-
-	ret = ioremap_pages(start, buffer->priv_phys, buffer->size, type);
+	//ret = ioremap_pages(start, buffer->priv_phys, buffer->size, type);
+	ret = ioremap_page(start, buffer->priv_phys, type);
 
 	if (!ret)
 		return (void *)start;
@@ -600,7 +600,7 @@ void *ion_cp_heap_map_kernel(struct ion_heap *heap, struct ion_buffer *buffer)
 			vfree(pages);
 		} else {
 			if (ION_IS_CACHED(buffer->flags))
-				ret_value = ioremap_cached(buffer->priv_phys,
+				ret_value = ioremap_cache(buffer->priv_phys,
 							   buffer->size);
 			else
 				ret_value = ioremap(buffer->priv_phys,
@@ -1208,7 +1208,7 @@ static int ion_cp_protect_mem_v1(unsigned int phy_base, unsigned int size,
 	cmd.permission_type = permission_type;
 	cmd.lock = SCM_CP_PROTECT;
 
-	return scm_call(SCM_SVC_CP, SCM_CP_LOCK_CMD_ID,
+	return scm_call(SCM_SVC_MP, SCM_CP_LOCK_CMD_ID, // was SCM_SVC_CP
 			&cmd, sizeof(cmd), NULL, 0);
 }
 
@@ -1221,7 +1221,7 @@ static int ion_cp_unprotect_mem_v1(unsigned int phy_base, unsigned int size,
 	cmd.permission_type = permission_type;
 	cmd.lock = SCM_CP_UNPROTECT;
 
-	return scm_call(SCM_SVC_CP, SCM_CP_LOCK_CMD_ID,
+	return scm_call(SCM_SVC_MP, SCM_CP_LOCK_CMD_ID, // was SCM_SVC_CP
 			&cmd, sizeof(cmd), NULL, 0);
 }
 
