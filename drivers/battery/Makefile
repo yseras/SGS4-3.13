@@ -1,4 +1,4 @@
-obj-$(CONFIG_BATTERY_SAMSUNG)	+= sec_battery.o	\
+obj-$(CONFIG_BATTERY_SAMSUNG)	+= #sec_battery.o	\
 								sec_fuelgauge.o
 
 obj-$(CONFIG_FUELGAUGE_MAX17042)	+= max17042_fuelgauge.o
