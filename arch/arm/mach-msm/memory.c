@@ -60,6 +60,8 @@ void invalidate_caches(unsigned long vstart,
 }
 
 char *memtype_name[] = {
+	"SMI_KERNEL",
+	"SMI",
 	"EBI0",
 	"EBI1"
 };
@@ -175,6 +177,14 @@ static int get_ebi_memtype(void)
 	return MEMTYPE_EBI1;
 }
 
+void *allocate_contiguous_ebi(unsigned long size,
+	unsigned long align, int cached)
+{
+	return allocate_contiguous_memory(size, get_ebi_memtype(),
+		align, cached);
+}
+EXPORT_SYMBOL(allocate_contiguous_ebi);
+
 unsigned long allocate_contiguous_ebi_nomap(unsigned long size,
 	unsigned long align)
 {
@@ -201,6 +211,27 @@ static int __init check_for_compat(unsigned long node)
 			return 1;
 
 	return 0;
+}
+
+static char * const memtype_names[] = {
+	[MEMTYPE_SMI_KERNEL] = "SMI_KERNEL",
+	[MEMTYPE_SMI]	= "SMI",
+	[MEMTYPE_EBI0] = "EBI0",
+	[MEMTYPE_EBI1] = "EBI1",
+};
+
+int msm_get_memory_type_from_name(const char *memtype_name)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(memtype_names); i++) {
+		if (memtype_names[i] &&
+		    strcmp(memtype_name, memtype_names[i]) == 0)
+			return i;
+	}
+
+	pr_err("Could not find memory type %s\n", memtype_name);
+	return -EINVAL;
 }
 
 int __init dt_scan_for_memory_reserve(unsigned long node, const char *uname,
