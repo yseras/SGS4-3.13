@@ -44,7 +44,7 @@ obj-$(CONFIG_ARCH_APQ8064) += board-8064-regulator.o board-8064-pmic.o board-806
 obj-$(CONFIG_ARCH_APQ8064) += gpiomux-v2.o gpiomux.o
 obj-$(CONFIG_ARCH_MSM8960) += gpiomux-v2.o gpiomux.o
 obj-$(CONFIG_ARCH_MSM8960) += footswitch-8x60.o
-#obj-$(CONFIG_MSM_PM8X60) += pm-8x60.o pm-data.o TODO: UNCOMMENT
+obj-$(CONFIG_MSM_PM8X60) += pm-data.o #pm-8x60.o TODO: UNCOMMENT
 
 obj-$(CONFIG_ARCH_MSM8960) += memory_topology.o
 
