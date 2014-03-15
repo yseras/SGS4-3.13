@@ -35,6 +35,7 @@ modules.builtin
 *.rej
 patch-3*
 *.porig
+zImage
 
 #
 # Top-level generic files
